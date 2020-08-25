@@ -25,19 +25,18 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-    
-    virtual void PostInitializeComponents() override;
 
 private:
-    void EquipWeapon();
     void Aim();
+    void EquipWeapon();
     
 private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     USkeletalMeshComponent* Weapon;
     
-    UPROPERTY()
-    class UBRAnimInstance* BRAnimInstance;
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    bool bAim;
     
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     bool bEquipWeapon;
 };
