@@ -27,12 +27,21 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 private:
+    void MoveForward(const float AxisValue);
+    void MoveRight(const float AxisValue);
+    
     void Aim();
     void EquipWeapon();
     
 private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     USkeletalMeshComponent* Weapon;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    float ForwardValue;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    float RightValue;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     bool bAim;

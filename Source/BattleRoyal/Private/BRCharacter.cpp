@@ -31,10 +31,27 @@ void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
     
+    PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ABRCharacter::MoveForward);
+    PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ABRCharacter::MoveRight);
+    PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ABRCharacter::AddControllerYawInput);
+    PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ABRCharacter::AddControllerPitchInput);
+    
     PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &ABRCharacter::Aim);
     PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Released, this, &ABRCharacter::Aim);
 
     PlayerInputComponent->BindAction(TEXT("EquipWeapon"), EInputEvent::IE_Pressed, this, &ABRCharacter::EquipWeapon);
+}
+
+void ABRCharacter::MoveForward(const float AxisValue)
+{
+    ForwardValue = AxisValue;
+    AddMovementInput(GetActorForwardVector(), AxisValue);
+}
+
+void ABRCharacter::MoveRight(const float AxisValue)
+{
+    RightValue = AxisValue;
+    AddMovementInput(GetActorRightVector(), AxisValue);
 }
 
 void ABRCharacter::Aim()
