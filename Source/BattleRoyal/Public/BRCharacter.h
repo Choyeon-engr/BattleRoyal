@@ -1,31 +1,27 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
-#include "CoreMinimal.h"
+#include "BattleRoyal.h"
 #include "GameFramework/Character.h"
 #include "BRCharacter.generated.h"
 
 UCLASS()
 class BATTLEROYAL_API ABRCharacter : public ACharacter
 {
-	GENERATED_BODY()
-
+    GENERATED_BODY()
+    
 public:
-	// Sets default values for this character's properties
-	ABRCharacter();
-
+    ABRCharacter();
+    
+    void Fire();
+    
+    FORCEINLINE float GetForwardValue() const noexcept { return ForwardValue; }
+    FORCEINLINE float GetRightValue() const noexcept { return RightValue; }
+    FORCEINLINE bool IsAim() const noexcept { return bAim; }
+    
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
-
-	// Called to bind functionality to input
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
+    virtual void BeginPlay() override;
+    virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+    
 private:
     void MoveForward(const float AxisValue);
     void MoveRight(const float AxisValue);
@@ -34,8 +30,17 @@ private:
     void EquipWeapon();
     
 private:
+    UPROPERTY()
+    class UBRAnimInstance* BRAnimInstance;
+    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-    USkeletalMeshComponent* Weapon;
+    class USkeletalMeshComponent* Weapon;
+    
+    UPROPERTY()
+    class USoundWave* FireSound;
+    
+    UPROPERTY()
+    class UParticleSystem* MuzzleParticle;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     float ForwardValue;
@@ -46,6 +51,5 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     bool bAim;
     
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     bool bEquipWeapon;
 };
