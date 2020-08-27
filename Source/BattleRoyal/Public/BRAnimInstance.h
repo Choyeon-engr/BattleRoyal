@@ -10,7 +10,6 @@ class BATTLEROYAL_API UBRAnimInstance : public UAnimInstance
     GENERATED_BODY()
     
 protected:
-    virtual void NativeBeginPlay() override;
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
     
 private:
@@ -18,7 +17,7 @@ private:
     void AnimNotify_Fire();
     
 private:
-    UPROPERTY()
+    UPROPERTY(Transient)
     class ABRCharacter* BRCharacter;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
