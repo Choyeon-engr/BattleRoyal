@@ -3,6 +3,7 @@
 #include "ParticleDefinitions.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"
+#include "Kismet/KismetMathLibrary.h"
 
 ABRCharacter::ABRCharacter() : bAim(false), bEquipWeapon(false)
 {
@@ -22,9 +23,17 @@ ABRCharacter::ABRCharacter() : bAim(false), bEquipWeapon(false)
     if (FIRE_SOUND.Succeeded())
         FireSound = FIRE_SOUND.Object;
     
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/Primary/FX/P_Wraith_Primary_MuzzleFlash"));
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
     if (MUZZLE_PARTICLE.Succeeded())
         MuzzleParticle = MUZZLE_PARTICLE.Object;
+    
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_WORLD_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitWorld"));
+    if (HIT_WORLD_PARTICLE.Succeeded())
+        HitWorldParticle = HIT_WORLD_PARTICLE.Object;
+    
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_CHARACTER_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitCharacter"));
+    if (HIT_CHARACTER_PARTICLE.Succeeded())
+        HitCharacterParticle = HIT_CHARACTER_PARTICLE.Object;
     
     static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
     if (CROSSHAIR_CLASS.Succeeded())
@@ -33,9 +42,19 @@ ABRCharacter::ABRCharacter() : bAim(false), bEquipWeapon(false)
 
 void ABRCharacter::Fire()
 {
+    FHitResult HitResult;
+    FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
+    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetWorld()->GetFirstPlayerController()->GetControlRotation()) * 10000.0f, ECollisionChannel::ECC_GameTraceChannel1, Params);
+    auto Target = Cast<ABRCharacter>(HitResult.Actor);
+    
     UGameplayStatics::SpawnEmitterAtLocation(this, MuzzleParticle, GetMesh()->GetSocketLocation(FName(TEXT("Muzzle_01"))), GetActorRotation());
     
     UGameplayStatics::SpawnSoundAtLocation(this, FireSound, GetActorLocation(), GetActorRotation(), 1.0f, 1.0f, 0.0f, nullptr, nullptr, true);
+    
+    if (Target)
+        UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
+    else
+        UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
 }
 
 void ABRCharacter::BeginPlay()

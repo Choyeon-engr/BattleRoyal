@@ -46,6 +46,12 @@ private:
     class UParticleSystem* MuzzleParticle;
     
     UPROPERTY()
+    class UParticleSystem* HitWorldParticle;
+    
+    UPROPERTY()
+    class UParticleSystem* HitCharacterParticle;
+    
+    UPROPERTY()
     TSubclassOf<class UUserWidget> CrosshairClass;
     
     UPROPERTY()
