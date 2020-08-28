@@ -1,12 +1,22 @@
 #include "BRCharacter.h"
 #include "BRAnimInstance.h"
 #include "ParticleDefinitions.h"
+#include "Blueprint/UserWidget.h"
+#include "Camera/CameraComponent.h"
 
 ABRCharacter::ABRCharacter() : bAim(false), bEquipWeapon(false)
 {
     PrimaryActorTick.bCanEverTick = true;
     
     Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+    SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
+    Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    
+    SpringArm->SetupAttachment(RootComponent);
+    Camera->SetupAttachment(SpringArm);
+    
+    Camera->SetFieldOfView(70.0f);
+    SpringArm->bUsePawnControlRotation = true;
     
     static ConstructorHelpers::FObjectFinder<USoundWave> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/Wavs/RifleA_Fire06"));
     if (FIRE_SOUND.Succeeded())
@@ -15,6 +25,10 @@ ABRCharacter::ABRCharacter() : bAim(false), bEquipWeapon(false)
     static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/Primary/FX/P_Wraith_Primary_MuzzleFlash"));
     if (MUZZLE_PARTICLE.Succeeded())
         MuzzleParticle = MUZZLE_PARTICLE.Object;
+    
+    static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
+    if (CROSSHAIR_CLASS.Succeeded())
+        CrosshairClass = CROSSHAIR_CLASS.Class;
 }
 
 void ABRCharacter::Fire()
@@ -29,6 +43,8 @@ void ABRCharacter::BeginPlay()
     Super::BeginPlay();
     
     UGameplayStatics::SpawnEmitterAttached(MuzzleParticle, GetMesh(), FName(TEXT("Muzzle_01")), FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition, true, EPSCPoolMethod::None, false);
+    
+    Crosshair = CreateWidget(GetWorld(), CrosshairClass);
 }
 
 void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -61,9 +77,17 @@ void ABRCharacter::MoveRight(const float AxisValue)
 void ABRCharacter::Aim()
 {
     if (bAim)
+    {
         bAim = false;
+        Camera->SetFieldOfView(70.0f);
+        Crosshair->RemoveFromParent();
+    }
     else
+    {
         bAim = true;
+        Camera->SetFieldOfView(35.0f);
+        Crosshair->AddToViewport();
+    }
 }
 
 void ABRCharacter::EquipWeapon()

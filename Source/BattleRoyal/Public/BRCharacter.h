@@ -30,17 +30,29 @@ private:
     void EquipWeapon();
     
 private:
-    UPROPERTY()
-    class UBRAnimInstance* BRAnimInstance;
-    
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     class USkeletalMeshComponent* Weapon;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    class USpringArmComponent* SpringArm;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    class UCameraComponent* Camera;
     
     UPROPERTY()
     class USoundWave* FireSound;
     
     UPROPERTY()
     class UParticleSystem* MuzzleParticle;
+    
+    UPROPERTY()
+    TSubclassOf<class UUserWidget> CrosshairClass;
+    
+    UPROPERTY()
+    class UUserWidget* Crosshair;
+    
+    UPROPERTY()
+    class UBRAnimInstance* BRAnimInstance;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     float ForwardValue;
