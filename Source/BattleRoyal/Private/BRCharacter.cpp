@@ -103,12 +103,17 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
 {
     float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
     
+    FHitResult HitResult;
+    FVector ImpulseDirection;
+    DamageEvent.GetBestHitInfo(this, DamageCauser, HitResult, ImpulseDirection);
+    
     GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
     
     Health -= FinalDamage;
     
-    if (Health <= 0.0f)
+    if (HitResult.BoneName == TEXT("head") || Health <= 0.0f)
         bDead = true;
+    
     else
         bDamaged = true;
     
