@@ -11,11 +11,15 @@ void UBRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     {
         ForwardValue = BRCharacter->GetForwardValue();
         RightValue = BRCharacter->GetRightValue();
-        ControllerPitch = BRCharacter->GetControllerPitch();
         
         bAim = BRCharacter->IsAim();
         bDead = BRCharacter->IsDead();
         bDamaged = BRCharacter->IsDamaged();
+        
+        if (bAim)
+            ControllerPitch = BRCharacter->GetControllerPitch();
+        else
+            ControllerPitch = 0.0f;
         
         LowerBodyRotation = RightValue * 30.0f;
         if (!ForwardValue && RightValue)    { ForwardValue = 1.0f; }
