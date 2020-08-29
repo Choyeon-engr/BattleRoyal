@@ -17,7 +17,7 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bEqui
     
     SpringArm->SetupAttachment(RootComponent);
     Camera->SetupAttachment(SpringArm);
-    
+
     Camera->SetFieldOfView(70.0f);
     SpringArm->bUsePawnControlRotation = true;
     
@@ -46,8 +46,10 @@ void ABRCharacter::Fire()
 {
     FHitResult HitResult;
     FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
-    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetWorld()->GetFirstPlayerController()->GetControlRotation()) * 10000.0f, ECollisionChannel::ECC_GameTraceChannel1, Params);
+    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 10000.0f, ECollisionChannel::ECC_GameTraceChannel1, Params);
     auto Target = Cast<ABRCharacter>(HitResult.Actor);
+    
+    GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
     
     UGameplayStatics::SpawnEmitterAtLocation(this, MuzzleParticle, GetMesh()->GetSocketLocation(FName(TEXT("Muzzle_01"))), GetActorRotation());
     
@@ -59,7 +61,7 @@ void ABRCharacter::Fire()
         {
             UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
             
-            UGameplayStatics::ApplyPointDamage(Target, 10.0f, UKismetMathLibrary::GetForwardVector(GetWorld()->GetFirstPlayerController()->GetControlRotation()), HitResult, GetController(), this, nullptr);
+            UGameplayStatics::ApplyPointDamage(Target, 10.0f, UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
         }
         
         else
@@ -100,6 +102,8 @@ void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser)
 {
     float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+    
+    GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
     
     Health -= FinalDamage;
     

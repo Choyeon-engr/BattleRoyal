@@ -18,7 +18,7 @@ public:
     
     FORCEINLINE float GetForwardValue() const noexcept { return ForwardValue; }
     FORCEINLINE float GetRightValue() const noexcept { return RightValue; }
-    FORCEINLINE float GetControllerPitch() const noexcept { return GetWorld()->GetFirstPlayerController()->GetControlRotation().Pitch; }
+    FORCEINLINE float GetControllerPitch() const noexcept { return GetControlRotation().Pitch; }
     
     FORCEINLINE bool IsAim() const noexcept { return bAim; }
     FORCEINLINE bool IsDead() const noexcept { return bDead; }
@@ -47,6 +47,9 @@ private:
 
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class UCameraComponent* Camera;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    TSubclassOf<UCameraShake> CameraShake;
     
     UPROPERTY()
     class USoundWave* FireSound;
