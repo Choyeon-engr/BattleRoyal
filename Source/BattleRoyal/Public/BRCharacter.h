@@ -18,6 +18,8 @@ public:
     
     FORCEINLINE float GetForwardValue() const noexcept { return ForwardValue; }
     FORCEINLINE float GetRightValue() const noexcept { return RightValue; }
+    FORCEINLINE float GetControllerPitch() const noexcept { return GetWorld()->GetFirstPlayerController()->GetControlRotation().Pitch; }
+    
     FORCEINLINE bool IsAim() const noexcept { return bAim; }
     FORCEINLINE bool IsDead() const noexcept { return bDead; }
     FORCEINLINE bool IsDamaged() const noexcept { return bDamaged; }
