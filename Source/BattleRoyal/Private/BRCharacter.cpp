@@ -5,7 +5,7 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -63,7 +63,6 @@ void ABRCharacter::Fire()
             
             UGameplayStatics::ApplyPointDamage(Target, 10.0f, UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
         }
-        
         else
             UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
     }
@@ -90,11 +89,15 @@ void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
     
     PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ABRCharacter::MoveForward);
     PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ABRCharacter::MoveRight);
+    
     PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ABRCharacter::AddControllerYawInput);
     PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ABRCharacter::AddControllerPitchInput);
     
     PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &ABRCharacter::Aim);
     PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Released, this, &ABRCharacter::Aim);
+    
+    PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Pressed, this, &ABRCharacter::Jump);
+    PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Released, this, &ABRCharacter::Jump);
     
     PlayerInputComponent->BindAction(TEXT("EquipWeapon"), EInputEvent::IE_Pressed, this, &ABRCharacter::EquipWeapon);
 }
@@ -113,7 +116,6 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
     
     if (HitResult.BoneName == TEXT("head") || Health <= 0.0f)
         bDead = true;
-    
     else
         bDamaged = true;
     
@@ -132,6 +134,20 @@ void ABRCharacter::MoveRight(const float AxisValue)
     AddMovementInput(GetActorRightVector(), AxisValue);
 }
 
+void ABRCharacter::Jump()
+{
+    if (bJump)
+    {
+        bJump = false;
+        ACharacter::StopJumping();
+    }
+    else
+    {
+        bJump = true;
+        ACharacter::Jump();
+    }
+}
+
 void ABRCharacter::Aim()
 {
     if (bAim)
@@ -140,7 +156,6 @@ void ABRCharacter::Aim()
         Camera->SetFieldOfView(70.0f);
         Crosshair->RemoveFromParent();
     }
-    
     else
     {
         bAim = true;
@@ -160,7 +175,6 @@ void ABRCharacter::EquipWeapon()
         FName BackpackWeaponSocket = TEXT("backpack_weapon");
         Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
     }
-    
     else
     {
         bEquipWeapon = true;

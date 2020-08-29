@@ -35,6 +35,7 @@ private:
     void MoveForward(const float AxisValue);
     void MoveRight(const float AxisValue);
     
+    void Jump();
     void Aim();
     void EquipWeapon();
     
@@ -78,6 +79,7 @@ private:
     bool bAim;
     bool bDead;
     bool bDamaged;
+    bool bJump;
     bool bEquipWeapon;
     
     float Health;
