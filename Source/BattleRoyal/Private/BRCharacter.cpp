@@ -5,9 +5,11 @@
 #include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 
-ABRCharacter::ABRCharacter() : bAim(false), bEquipWeapon(false)
+ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
+    
+    GetMesh()->SetCollisionProfileName(TEXT("BRCharacter"));
     
     Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
     SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
@@ -51,10 +53,24 @@ void ABRCharacter::Fire()
     
     UGameplayStatics::SpawnSoundAtLocation(this, FireSound, GetActorLocation(), GetActorRotation(), 1.0f, 1.0f, 0.0f, nullptr, nullptr, true);
     
-    if (Target)
-        UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
-    else
-        UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
+    if (bResult)
+    {
+        if (Target)
+        {
+            UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
+            
+            UGameplayStatics::ApplyPointDamage(Target, 10.0f, UKismetMathLibrary::GetForwardVector(GetWorld()->GetFirstPlayerController()->GetControlRotation()), HitResult, GetController(), this, nullptr);
+        }
+        
+        else
+            UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
+    }
+}
+
+void ABRCharacter::Dead()
+{
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda([this]() -> void { Destroy(); }), DeadTimer, false);
 }
 
 void ABRCharacter::BeginPlay()
@@ -81,6 +97,20 @@ void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
     PlayerInputComponent->BindAction(TEXT("EquipWeapon"), EInputEvent::IE_Pressed, this, &ABRCharacter::EquipWeapon);
 }
 
+float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+    float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+    
+    Health -= FinalDamage;
+    
+    if (Health <= 0.0f)
+        bDead = true;
+    else
+        bDamaged = true;
+    
+    return FinalDamage;
+}
+
 void ABRCharacter::MoveForward(const float AxisValue)
 {
     ForwardValue = AxisValue;
@@ -101,6 +131,7 @@ void ABRCharacter::Aim()
         Camera->SetFieldOfView(70.0f);
         Crosshair->RemoveFromParent();
     }
+    
     else
     {
         bAim = true;

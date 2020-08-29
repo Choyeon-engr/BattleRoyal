@@ -11,7 +11,11 @@ void UBRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     {
         ForwardValue = BRCharacter->GetForwardValue();
         RightValue = BRCharacter->GetRightValue();
+        
         bAim = BRCharacter->IsAim();
+        bDead = BRCharacter->IsDead();
+        bDamaged = BRCharacter->IsDamaged();
+        
         LowerBodyRotation = RightValue * 30.0f;
         if (!ForwardValue && RightValue)    { ForwardValue = 1.0f; }
         LowerBodyRotation = ForwardValue * RightValue;
@@ -22,4 +26,14 @@ void UBRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 void UBRAnimInstance::AnimNotify_Fire()
 {
     BRCharacter->Fire();
+}
+
+void UBRAnimInstance::AnimNotify_Dead()
+{
+    BRCharacter->Dead();
+}
+
+void UBRAnimInstance::AnimNotify_ResetDamaged()
+{
+    BRCharacter->ResetDamaged();
 }

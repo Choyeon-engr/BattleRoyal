@@ -16,6 +16,12 @@ private:
     UFUNCTION()
     void AnimNotify_Fire();
     
+    UFUNCTION()
+    void AnimNotify_Dead();
+    
+    UFUNCTION()
+    void AnimNotify_ResetDamaged();
+    
 private:
     UPROPERTY(Transient)
     class ABRCharacter* BRCharacter;
@@ -28,6 +34,12 @@ private:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     bool bAim;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    bool bDead;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    bool bDamaged;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     float LowerBodyRotation;
