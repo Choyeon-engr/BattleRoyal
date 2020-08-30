@@ -35,8 +35,8 @@ private:
     void MoveForward(const float AxisValue);
     void MoveRight(const float AxisValue);
     
-    void Jump();
     void Aim();
+    void Jump();
     void EquipWeapon();
     
 private:

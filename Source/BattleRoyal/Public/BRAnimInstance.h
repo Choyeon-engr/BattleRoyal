@@ -9,6 +9,9 @@ class BATTLEROYAL_API UBRAnimInstance : public UAnimInstance
 {
     GENERATED_BODY()
     
+public:
+    UBRAnimInstance();
+    
 protected:
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;
     
@@ -55,4 +58,13 @@ private:
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     bool bPreFalling;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    bool bStart;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    bool bApex;
+    
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    bool bLand;
 };

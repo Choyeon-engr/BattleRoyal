@@ -134,20 +134,6 @@ void ABRCharacter::MoveRight(const float AxisValue)
     AddMovementInput(GetActorRightVector(), AxisValue);
 }
 
-void ABRCharacter::Jump()
-{
-    if (bJump)
-    {
-        bJump = false;
-        ACharacter::StopJumping();
-    }
-    else
-    {
-        bJump = true;
-        ACharacter::Jump();
-    }
-}
-
 void ABRCharacter::Aim()
 {
     if (bAim)
@@ -161,6 +147,20 @@ void ABRCharacter::Aim()
         bAim = true;
         Camera->SetFieldOfView(35.0f);
         Crosshair->AddToViewport();
+    }
+}
+
+void ABRCharacter::Jump()
+{
+    if (bJump)
+    {
+        bJump = false;
+        ACharacter::StopJumping();
+    }
+    else
+    {
+        bJump = true;
+        ACharacter::Jump();
     }
 }
 
