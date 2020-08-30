@@ -1,5 +1,4 @@
 #include "BRCharacter.h"
-#include "BRAnimInstance.h"
 #include "ParticleDefinitions.h"
 #include "Blueprint/UserWidget.h"
 #include "Camera/CameraComponent.h"

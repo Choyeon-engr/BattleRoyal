@@ -70,9 +70,6 @@ private:
     UPROPERTY()
     class UUserWidget* Crosshair;
     
-    UPROPERTY()
-    class UBRAnimInstance* BRAnimInstance;
-    
     float ForwardValue;
     float RightValue;
     
