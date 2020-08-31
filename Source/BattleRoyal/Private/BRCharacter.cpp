@@ -1,8 +1,10 @@
 #include "BRCharacter.h"
+#include "BRItem.h"
+#include "BRWeaponDataTableRow.h"
 #include "ParticleDefinitions.h"
 #include "Blueprint/UserWidget.h"
-#include "Camera/CameraComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Engine/DataTable.h"
 
 ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
 {
@@ -39,6 +41,10 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
     if (CROSSHAIR_CLASS.Succeeded())
         CrosshairClass = CROSSHAIR_CLASS.Class;
+    
+    static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/Blueprints/DataTable/DT_BRWeapon"));
+    if (DataTable.Succeeded())
+        BRWeaponDataTable = DataTable.Object;
 }
 
 void ABRCharacter::Fire()
@@ -99,6 +105,8 @@ void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
     PlayerInputComponent->BindAction(TEXT("Jump"), EInputEvent::IE_Released, this, &ABRCharacter::Jump);
     
     PlayerInputComponent->BindAction(TEXT("EquipWeapon"), EInputEvent::IE_Pressed, this, &ABRCharacter::EquipWeapon);
+    
+    PlayerInputComponent->BindAction(TEXT("Interaction"), EInputEvent::IE_Pressed, this, &ABRCharacter::Interaction);
 }
 
 float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser)
@@ -182,5 +190,28 @@ void ABRCharacter::EquipWeapon()
         
         FName RightHandWeaponSocket = TEXT("weapon_r");
         Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandWeaponSocket);
+    }
+}
+
+void ABRCharacter::Interaction()
+{
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
+    
+    TArray<AActor*> ActorsToIgnore;
+    TArray<class AActor*> OutActors;
+    
+    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRItem::StaticClass(), ActorsToIgnore, OutActors);
+    
+    if (bResult)
+    {
+        ABRItem* BRItem = Cast<ABRItem>(OutActors[0]);
+        int32 BRWeaponId = BRItem->GetBRWeaponId();
+        
+        FBRWeaponDataTableRow* BRWeaponDataTableRow = BRWeaponDataTable->FindRow<FBRWeaponDataTableRow>(FName(*(FString::FormatAsNumber(BRWeaponId))), FString(""), true);
+        
+        Weapon->SetSkeletalMesh(BRWeaponDataTableRow->GetSkeletalMesh(), true);
+        
+        GetWorld()->DestroyActor(BRItem);
     }
 }

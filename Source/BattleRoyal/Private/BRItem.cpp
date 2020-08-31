@@ -1,5 +1,6 @@
 #include "BRItem.h"
 #include "BRWeaponDataTableRow.h"
+#include "Engine/DataTable.h"
 
 ABRItem::ABRItem()
 {

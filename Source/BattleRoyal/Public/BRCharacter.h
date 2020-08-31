@@ -38,6 +38,7 @@ private:
     void Aim();
     void Jump();
     void EquipWeapon();
+    void Interaction();
     
 private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
@@ -69,6 +70,9 @@ private:
     
     UPROPERTY()
     class UUserWidget* Crosshair;
+    
+    UPROPERTY()
+    class UDataTable* BRWeaponDataTable;
     
     float ForwardValue;
     float RightValue;

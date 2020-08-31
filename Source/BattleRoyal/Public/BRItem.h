@@ -1,7 +1,6 @@
 #pragma once
 
 #include "BattleRoyal.h"
-#include "Engine/DataTable.h"
 #include "BRItem.generated.h"
 
 UCLASS()
@@ -11,6 +10,8 @@ class BATTLEROYAL_API ABRItem : public AActor
     
 public:
     ABRItem();
+    
+    FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
     
 protected:
     void BeginPlay() override;
@@ -37,5 +38,6 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     int32 BulletQuantity;
     
-    UDataTable* BRWeaponDataTable;
+    UPROPERTY()
+    class UDataTable* BRWeaponDataTable;
 };
