@@ -4,7 +4,6 @@
 #include "ParticleDefinitions.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "Engine/DataTable.h"
 
 ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
 {
@@ -12,10 +11,11 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     
     GetMesh()->SetCollisionProfileName(TEXT("BRCharacter"));
     
-    Weapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
+    BRWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BRWeapon"));
     SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     
+    BRWeapon->SetupAttachment(RootComponent);
     SpringArm->SetupAttachment(RootComponent);
     Camera->SetupAttachment(SpringArm);
 
@@ -41,10 +41,6 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
     if (CROSSHAIR_CLASS.Succeeded())
         CrosshairClass = CROSSHAIR_CLASS.Class;
-    
-    static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/Blueprints/DataTable/DT_BRWeapon"));
-    if (DataTable.Succeeded())
-        BRWeaponDataTable = DataTable.Object;
 }
 
 void ABRCharacter::Fire()
@@ -177,19 +173,19 @@ void ABRCharacter::EquipWeapon()
     {
         bEquipWeapon = false;
         
-        Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+        BRWeapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
         FName BackpackWeaponSocket = TEXT("backpack_weapon");
-        Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
     }
     else
     {
         bEquipWeapon = true;
         
-        Weapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+        BRWeapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
         FName RightHandWeaponSocket = TEXT("weapon_r");
-        Weapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandWeaponSocket);
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandWeaponSocket);
     }
 }
 
@@ -208,9 +204,7 @@ void ABRCharacter::Interaction()
         ABRItem* BRItem = Cast<ABRItem>(OutActors[0]);
         int32 BRWeaponId = BRItem->GetBRWeaponId();
         
-        FBRWeaponDataTableRow* BRWeaponDataTableRow = BRWeaponDataTable->FindRow<FBRWeaponDataTableRow>(FName(*(FString::FormatAsNumber(BRWeaponId))), FString(""), true);
-        
-        Weapon->SetSkeletalMesh(BRWeaponDataTableRow->GetSkeletalMesh(), true);
+        BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh(), true);
         
         GetWorld()->DestroyActor(BRItem);
     }

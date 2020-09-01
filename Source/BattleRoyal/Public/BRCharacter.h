@@ -42,7 +42,7 @@ private:
     
 private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-    class USkeletalMeshComponent* Weapon;
+    class USkeletalMeshComponent* BRWeapon;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class USpringArmComponent* SpringArm;
@@ -70,9 +70,6 @@ private:
     
     UPROPERTY()
     class UUserWidget* Crosshair;
-    
-    UPROPERTY()
-    class UDataTable* BRWeaponDataTable;
     
     float ForwardValue;
     float RightValue;
