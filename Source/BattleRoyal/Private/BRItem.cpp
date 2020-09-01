@@ -5,7 +5,7 @@
 ABRItem::ABRItem()
 {
     Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
-    SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
+    SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
     
     Sphere->SetCollisionProfileName(TEXT("BRItem"));
     
