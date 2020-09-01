@@ -18,6 +18,8 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     BRWeapon->SetupAttachment(RootComponent);
     SpringArm->SetupAttachment(RootComponent);
     Camera->SetupAttachment(SpringArm);
+    
+    BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
 
     Camera->SetFieldOfView(70.0f);
     SpringArm->bUsePawnControlRotation = true;
@@ -202,10 +204,7 @@ void ABRCharacter::Interaction()
     if (bResult)
     {
         ABRItem* BRItem = Cast<ABRItem>(OutActors[0]);
-        int32 BRWeaponId = BRItem->GetBRWeaponId();
-        
-        BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh(), true);
-        
+        BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh());
         GetWorld()->DestroyActor(BRItem);
     }
 }

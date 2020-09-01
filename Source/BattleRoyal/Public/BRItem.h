@@ -25,11 +25,17 @@ private:
     void Initialize();
     
 private:
+    UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
+    USphereComponent* Sphere;
+    
+    UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
+    USkeletalMeshComponent* SkeletalMeshComponent;
+    
+    UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
+    USkeletalMesh* SkeletalMesh;
+    
     UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
     int32 BRWeaponId;
-    
-    UPROPERTY()
-    USkeletalMesh* SkeletalMesh;
     
     FName BRWeaponName;
     int32 AttackPower;
