@@ -12,30 +12,29 @@ public:
     ABRItem();
     
     FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
+    FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
     
 protected:
+#if WITH_EDITOR
+    void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
+#endif
     void BeginPlay() override;
     
 private:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    UFUNCTION()
+    void Initialize();
+    
+private:
+    UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
     int32 BRWeaponId;
     
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-    FName BRWeaponName;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    UPROPERTY()
     USkeletalMesh* SkeletalMesh;
     
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    FName BRWeaponName;
     int32 AttackPower;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     int32 AttackSpeed;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     int32 AttackRange;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     int32 BulletQuantity;
     
     UPROPERTY()
