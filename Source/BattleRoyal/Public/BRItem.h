@@ -11,8 +11,9 @@ class BATTLEROYAL_API ABRItem : public AActor
 public:
     ABRItem();
     
-    FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
+    FORCEINLINE USphereComponent* GetSphereComponent() const noexcept { return SphereComponent; }
     FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
+    FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
     
 protected:
 #if WITH_EDITOR
@@ -26,7 +27,7 @@ private:
     
 private:
     UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
-    USphereComponent* Sphere;
+    USphereComponent* SphereComponent;
     
     UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
     USkeletalMeshComponent* SkeletalMeshComponent;

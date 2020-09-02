@@ -20,7 +20,7 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     Camera->SetupAttachment(SpringArm);
     
     BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-
+    
     Camera->SetFieldOfView(70.0f);
     SpringArm->bUsePawnControlRotation = true;
     
@@ -203,8 +203,44 @@ void ABRCharacter::Interaction()
     
     if (bResult)
     {
-        ABRItem* BRItem = Cast<ABRItem>(OutActors[0]);
-        BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh());
-        GetWorld()->DestroyActor(BRItem);
+        int32 NearestItemIndex = -1;
+        
+        for (int32 i = 0; i < OutActors.Num(); ++i)
+        {
+            ABRItem* BRItem = Cast<ABRItem>(OutActors[i]);
+            USphereComponent* SphereComponent = BRItem->GetSphereComponent();
+            
+            FHitResult HitResult;
+            FCollisionQueryParams Params(NAME_None, false, this);
+            
+            bool bLineTraceResult = SphereComponent->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
+            if (bLineTraceResult)
+            {
+                NearestItemIndex = i;
+                break;
+            }
+        }
+        
+        if (NearestItemIndex == -1)
+        {
+            float NearestItemDistance = 200.0f;
+            
+            for (int32 j = 0; j < OutActors.Num(); ++j)
+            {
+                float CurItemDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
+                if (NearestItemDistance > CurItemDistance)
+                {
+                    NearestItemDistance = CurItemDistance;
+                    NearestItemIndex = j;
+                }
+            }
+        }
+        
+        if (NearestItemIndex != -1)
+        {
+            ABRItem* BRItem = Cast<ABRItem>(OutActors[NearestItemIndex]);
+            BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh());
+            GetWorld()->DestroyActor(BRItem);
+        }
     }
 }
