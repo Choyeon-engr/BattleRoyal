@@ -20,9 +20,8 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     Camera->SetupAttachment(SpringArm);
     
     BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-    
-    Camera->SetFieldOfView(70.0f);
     SpringArm->bUsePawnControlRotation = true;
+    Camera->SetFieldOfView(70.0f);
     
     static ConstructorHelpers::FObjectFinder<USoundWave> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/Wavs/RifleA_Fire06"));
     if (FIRE_SOUND.Succeeded())
@@ -40,7 +39,7 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     if (HIT_CHARACTER_PARTICLE.Succeeded())
         HitCharacterParticle = HIT_CHARACTER_PARTICLE.Object;
     
-    static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
+    static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/BattleRoyal/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
     if (CROSSHAIR_CLASS.Succeeded())
         CrosshairClass = CROSSHAIR_CLASS.Class;
 }
@@ -127,6 +126,60 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
     return FinalDamage;
 }
 
+ABRItem* ABRCharacter::FindItem()
+{
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
+    
+    TArray<AActor*> ActorsToIgnore;
+    TArray<class AActor*> OutActors;
+    
+    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRItem::StaticClass(), ActorsToIgnore, OutActors);
+    
+    if (bResult)
+    {
+        int32 NearestItemIndex = -1;
+        
+        for (int32 i = 0; i < OutActors.Num(); ++i)
+        {
+            ABRItem* BRItem = Cast<ABRItem>(OutActors[i]);
+            USphereComponent* Sphere = BRItem->GetSphere();
+            
+            FHitResult HitResult;
+            FCollisionQueryParams Params(NAME_None, false, this);
+            
+            bool bLineTraceResult = Sphere->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
+            if (bLineTraceResult)
+            {
+                NearestItemIndex = i;
+                return Cast<ABRItem>(OutActors[NearestItemIndex]);
+            }
+        }
+        
+        if (NearestItemIndex == -1)
+        {
+            float NearestItemDistance = 200.0f;
+            
+            for (int32 j = 0; j < OutActors.Num(); ++j)
+            {
+                float CurItemDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
+                if (NearestItemDistance > CurItemDistance)
+                {
+                    NearestItemDistance = CurItemDistance;
+                    NearestItemIndex = j;
+                }
+            }
+            
+            if (NearestItemIndex != -1)
+                return Cast<ABRItem>(OutActors[NearestItemIndex]);
+        }
+        
+        return nullptr;
+    }
+    else
+        return nullptr;
+}
+
 void ABRCharacter::MoveForward(const float AxisValue)
 {
     ForwardValue = AxisValue;
@@ -193,54 +246,10 @@ void ABRCharacter::EquipWeapon()
 
 void ABRCharacter::Interaction()
 {
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
-    
-    TArray<AActor*> ActorsToIgnore;
-    TArray<class AActor*> OutActors;
-    
-    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRItem::StaticClass(), ActorsToIgnore, OutActors);
-    
-    if (bResult)
+    ABRItem* BRItem = FindItem();
+    if (BRItem)
     {
-        int32 NearestItemIndex = -1;
-        
-        for (int32 i = 0; i < OutActors.Num(); ++i)
-        {
-            ABRItem* BRItem = Cast<ABRItem>(OutActors[i]);
-            USphereComponent* SphereComponent = BRItem->GetSphereComponent();
-            
-            FHitResult HitResult;
-            FCollisionQueryParams Params(NAME_None, false, this);
-            
-            bool bLineTraceResult = SphereComponent->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
-            if (bLineTraceResult)
-            {
-                NearestItemIndex = i;
-                break;
-            }
-        }
-        
-        if (NearestItemIndex == -1)
-        {
-            float NearestItemDistance = 200.0f;
-            
-            for (int32 j = 0; j < OutActors.Num(); ++j)
-            {
-                float CurItemDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
-                if (NearestItemDistance > CurItemDistance)
-                {
-                    NearestItemDistance = CurItemDistance;
-                    NearestItemIndex = j;
-                }
-            }
-        }
-        
-        if (NearestItemIndex != -1)
-        {
-            ABRItem* BRItem = Cast<ABRItem>(OutActors[NearestItemIndex]);
-            BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh());
-            GetWorld()->DestroyActor(BRItem);
-        }
+        BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh());
+        GetWorld()->DestroyActor(BRItem);
     }
 }

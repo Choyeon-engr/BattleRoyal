@@ -32,6 +32,9 @@ protected:
     float TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
     
 private:
+    UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = true))
+    ABRItem* FindItem();
+    
     void MoveForward(const float AxisValue);
     void MoveRight(const float AxisValue);
     
@@ -41,7 +44,7 @@ private:
     void Interaction();
     
 private:
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class USkeletalMeshComponent* BRWeapon;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
@@ -50,7 +53,7 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class UCameraComponent* Camera;
     
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     TSubclassOf<UCameraShake> CameraShake;
     
     UPROPERTY()
