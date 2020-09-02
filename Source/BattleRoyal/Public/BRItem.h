@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BattleRoyal.h"
+#include "Sound/SoundCue.h"
 #include "BRItem.generated.h"
 
 UCLASS()
@@ -16,6 +17,11 @@ public:
     
     FORCEINLINE USphereComponent* GetSphere() const noexcept { return Sphere; }
     FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
+    FORCEINLINE USoundCue* GetFireSound() const noexcept { return FireSound; }
+    FORCEINLINE UParticleSystem* GetMuzzleParticle() const noexcept { return MuzzleParticle; }
+    FORCEINLINE int32 GetAttackPower() const noexcept { return AttackPower; }
+    FORCEINLINE int32 GetAttackRange() const noexcept { return AttackRange; }
+    FORCEINLINE int32 GetBulletQuantity() const noexcept { return BulletQuantity; }
     
 protected:
 #if WITH_EDITOR
@@ -36,12 +42,17 @@ private:
     UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
     USkeletalMesh* SkeletalMesh;
     
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    class USoundCue* FireSound;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    class UParticleSystem* MuzzleParticle;
+    
     UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
     int32 BRWeaponId;
     
     FName BRWeaponName;
     int32 AttackPower;
-    int32 AttackSpeed;
     int32 AttackRange;
     int32 BulletQuantity;
     

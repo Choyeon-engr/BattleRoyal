@@ -43,8 +43,9 @@ void ABRItem::Initialize()
         BRWeaponName = BRWeaponDataTableRow->GetBRWeaponName();
         SkeletalMeshComponent->SetSkeletalMesh(BRWeaponDataTableRow->GetSkeletalMesh());
         SkeletalMesh = BRWeaponDataTableRow->GetSkeletalMesh();
+        FireSound = BRWeaponDataTableRow->GetFireSound();
+        MuzzleParticle = BRWeaponDataTableRow->GetMuzzleParticle();
         AttackPower = BRWeaponDataTableRow->GetAttackPower();
-        AttackSpeed = BRWeaponDataTableRow->GetAttackSpeed();
         AttackRange = BRWeaponDataTableRow->GetAttackRange();
         BulletQuantity = BRWeaponDataTableRow->GetBulletQuantity();
         
@@ -59,7 +60,6 @@ void ABRItem::Initialize()
         SkeletalMeshComponent->SetSkeletalMesh(nullptr);
         SkeletalMesh = nullptr;
         AttackPower = 0;
-        AttackSpeed = 0;
         AttackRange = 0;
         BulletQuantity = 0;
     }

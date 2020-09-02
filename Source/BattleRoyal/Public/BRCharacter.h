@@ -1,6 +1,7 @@
 #pragma once
 
 #include "BattleRoyal.h"
+#include "Sound/SoundCue.h"
 #include "GameFramework/Character.h"
 #include "BRCharacter.generated.h"
 
@@ -43,6 +44,8 @@ private:
     void EquipWeapon();
     void Interaction();
     
+    void SetDefault();
+    
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class USkeletalMeshComponent* BRWeapon;
@@ -57,7 +60,7 @@ private:
     TSubclassOf<UCameraShake> CameraShake;
     
     UPROPERTY()
-    class USoundWave* FireSound;
+    class USoundCue* FireSound;
     
     UPROPERTY()
     class UParticleSystem* MuzzleParticle;
@@ -85,6 +88,14 @@ private:
     
     float Health;
     float DeadTimer;
+    
+    int32 AttackPower;
+    int32 AttackRange;
+    int32 BulletQuantity;
+    
+    int32 WeaponAttackPower;
+    int32 WeaponAttackRange;
+    int32 WeaponBulletQuantity;
     
     FTimerHandle DeadTimerHandle = { };
 };

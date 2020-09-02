@@ -5,7 +5,7 @@
 #include "Blueprint/UserWidget.h"
 #include "Kismet/KismetMathLibrary.h"
 
-ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f), AttackPower(10), AttackRange(1000), BulletQuantity(10), WeaponAttackPower(10), WeaponAttackRange(1000), WeaponBulletQuantity(10)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -23,13 +23,7 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     SpringArm->bUsePawnControlRotation = true;
     Camera->SetFieldOfView(70.0f);
     
-    static ConstructorHelpers::FObjectFinder<USoundWave> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/Wavs/RifleA_Fire06"));
-    if (FIRE_SOUND.Succeeded())
-        FireSound = FIRE_SOUND.Object;
-    
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
-    if (MUZZLE_PARTICLE.Succeeded())
-        MuzzleParticle = MUZZLE_PARTICLE.Object;
+    SetDefault();
     
     static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_WORLD_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitWorld"));
     if (HIT_WORLD_PARTICLE.Succeeded())
@@ -48,7 +42,7 @@ void ABRCharacter::Fire()
 {
     FHitResult HitResult;
     FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
-    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 10000.0f, ECollisionChannel::ECC_GameTraceChannel1, Params);
+    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * AttackRange, ECollisionChannel::ECC_GameTraceChannel1, Params);
     auto Target = Cast<ABRCharacter>(HitResult.Actor);
     
     GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
@@ -63,7 +57,7 @@ void ABRCharacter::Fire()
         {
             UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
             
-            UGameplayStatics::ApplyPointDamage(Target, 10.0f, UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
+            UGameplayStatics::ApplyPointDamage(Target, AttackPower, UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
         }
         else
             UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
@@ -230,12 +224,14 @@ void ABRCharacter::EquipWeapon()
         
         BRWeapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
-        FName BackpackWeaponSocket = TEXT("backpack_weapon");
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
+        SetDefault();
     }
     else
     {
         bEquipWeapon = true;
+        AttackPower = WeaponAttackPower;
+        AttackRange = WeaponAttackRange;
+        BulletQuantity = WeaponBulletQuantity;
         
         BRWeapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
@@ -250,6 +246,30 @@ void ABRCharacter::Interaction()
     if (BRItem)
     {
         BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh());
+        FireSound = BRItem->GetFireSound();
+        MuzzleParticle = BRItem->GetMuzzleParticle();
+        
+        WeaponAttackPower = BRItem->GetAttackPower();
+        WeaponAttackRange = BRItem->GetAttackRange();
+        WeaponBulletQuantity = BRItem->GetBulletQuantity();
         GetWorld()->DestroyActor(BRItem);
     }
+}
+
+void ABRCharacter::SetDefault()
+{
+    AttackPower = 10;
+    AttackRange = 1000;
+    BulletQuantity = 10;
+    
+    FName BackpackWeaponSocket = TEXT("backpack_weapon");
+    BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
+    
+    static ConstructorHelpers::FObjectFinder<USoundCue> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/RifleA_Fire_Cue"));
+    if (FIRE_SOUND.Succeeded())
+        FireSound = FIRE_SOUND.Object;
+    
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
+    if (MUZZLE_PARTICLE.Succeeded())
+        MuzzleParticle = MUZZLE_PARTICLE.Object;
 }
