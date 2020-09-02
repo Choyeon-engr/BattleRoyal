@@ -4,14 +4,14 @@
 
 ABRItem::ABRItem()
 {
-    SphereComponent = CreateDefaultSubobject<USphereComponent>(TEXT("SphereComponent"));
+    Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
     SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
     
-    SphereComponent->SetCollisionProfileName(TEXT("BRItem"));
+    Sphere->SetCollisionProfileName(TEXT("BRItem"));
     
-    SkeletalMeshComponent->SetupAttachment(SphereComponent);
+    SkeletalMeshComponent->SetupAttachment(Sphere);
     
-    static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/Blueprints/DataTable/DT_BRWeapon"));
+    static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/BattleRoyal/DataTable/DT_BRItem"));
     if (DataTable.Succeeded())
         BRWeaponDataTable = DataTable.Object;
 }
@@ -51,7 +51,7 @@ void ABRItem::Initialize()
         FVector Origin, BoxExtent;
         float SphereRadius;
         UKismetSystemLibrary::GetComponentBounds(SkeletalMeshComponent, Origin, BoxExtent, SphereRadius);
-        SphereComponent->SetSphereRadius(SphereRadius, true);
+        Sphere->SetSphereRadius(SphereRadius, true);
     }
     else
     {

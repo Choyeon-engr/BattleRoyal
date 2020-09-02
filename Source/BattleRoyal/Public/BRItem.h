@@ -11,9 +11,11 @@ class BATTLEROYAL_API ABRItem : public AActor
 public:
     ABRItem();
     
-    FORCEINLINE USphereComponent* GetSphereComponent() const noexcept { return SphereComponent; }
-    FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
+    UFUNCTION(BlueprintCallable)
     FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
+    
+    FORCEINLINE USphereComponent* GetSphere() const noexcept { return Sphere; }
+    FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
     
 protected:
 #if WITH_EDITOR
@@ -22,12 +24,11 @@ protected:
     void BeginPlay() override;
     
 private:
-    UFUNCTION()
     void Initialize();
     
 private:
     UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
-    USphereComponent* SphereComponent;
+    USphereComponent* Sphere;
     
     UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
     USkeletalMeshComponent* SkeletalMeshComponent;
