@@ -48,6 +48,9 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     class UParticleSystem* MuzzleParticle;
     
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    bool bRandom;
+    
     UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
     int32 BRWeaponId;
     
