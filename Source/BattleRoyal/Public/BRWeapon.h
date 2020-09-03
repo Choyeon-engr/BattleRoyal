@@ -1,23 +1,22 @@
 #pragma once
 
 #include "BattleRoyal.h"
-#include "Sound/SoundCue.h"
-#include "BRItem.generated.h"
+#include "BRWeapon.generated.h"
 
 UCLASS()
-class BATTLEROYAL_API ABRItem : public AActor
+class BATTLEROYAL_API ABRWeapon : public AActor
 {
     GENERATED_BODY()
     
 public:
-    ABRItem();
+    ABRWeapon();
     
     UFUNCTION(BlueprintCallable)
     FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
     
     FORCEINLINE USphereComponent* GetSphere() const noexcept { return Sphere; }
     FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
-    FORCEINLINE USoundCue* GetFireSound() const noexcept { return FireSound; }
+    FORCEINLINE class USoundCue* GetFireSound() const noexcept { return FireSound; }
     FORCEINLINE UParticleSystem* GetMuzzleParticle() const noexcept { return MuzzleParticle; }
     FORCEINLINE int32 GetAttackPower() const noexcept { return AttackPower; }
     FORCEINLINE int32 GetAttackRange() const noexcept { return AttackRange; }

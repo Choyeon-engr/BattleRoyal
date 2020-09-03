@@ -34,7 +34,7 @@ protected:
     
 private:
     UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = true))
-    ABRItem* FindItem();
+    ABRWeapon* FindWeapon();
     
     void MoveForward(const float AxisValue);
     void MoveRight(const float AxisValue);
@@ -48,7 +48,7 @@ private:
     
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-    class USkeletalMeshComponent* BRWeapon;
+    class USkeletalMeshComponent* BRWeaponSkeletalMesh;
     
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class USpringArmComponent* SpringArm;

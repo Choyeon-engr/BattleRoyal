@@ -1,5 +1,5 @@
 #include "BRCharacter.h"
-#include "BRItem.h"
+#include "BRWeapon.h"
 #include "BRWeaponDataTableRow.h"
 #include "ParticleDefinitions.h"
 #include "Blueprint/UserWidget.h"
@@ -11,15 +11,14 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     
     GetMesh()->SetCollisionProfileName(TEXT("BRCharacter"));
     
-    BRWeapon = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BRWeapon"));
+    BRWeaponSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BRWeaponSkeletalMesh"));
     SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     
-    BRWeapon->SetupAttachment(RootComponent);
+    BRWeaponSkeletalMesh->SetupAttachment(RootComponent);
     SpringArm->SetupAttachment(RootComponent);
     Camera->SetupAttachment(SpringArm);
     
-    BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
     SpringArm->bUsePawnControlRotation = true;
     Camera->SetFieldOfView(70.0f);
     
@@ -120,7 +119,7 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
     return FinalDamage;
 }
 
-ABRItem* ABRCharacter::FindItem()
+ABRWeapon* ABRCharacter::FindWeapon()
 {
     TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
     ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
@@ -128,16 +127,16 @@ ABRItem* ABRCharacter::FindItem()
     TArray<AActor*> ActorsToIgnore;
     TArray<class AActor*> OutActors;
     
-    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRItem::StaticClass(), ActorsToIgnore, OutActors);
+    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRWeapon::StaticClass(), ActorsToIgnore, OutActors);
     
     if (bResult)
     {
-        int32 NearestItemIndex = -1;
+        int32 NearestWeaponIndex = -1;
         
         for (int32 i = 0; i < OutActors.Num(); ++i)
         {
-            ABRItem* BRItem = Cast<ABRItem>(OutActors[i]);
-            USphereComponent* Sphere = BRItem->GetSphere();
+            ABRWeapon* BRWeapon = Cast<ABRWeapon>(OutActors[i]);
+            USphereComponent* Sphere = BRWeapon->GetSphere();
             
             FHitResult HitResult;
             FCollisionQueryParams Params(NAME_None, false, this);
@@ -145,27 +144,27 @@ ABRItem* ABRCharacter::FindItem()
             bool bLineTraceResult = Sphere->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
             if (bLineTraceResult)
             {
-                NearestItemIndex = i;
-                return Cast<ABRItem>(OutActors[NearestItemIndex]);
+                NearestWeaponIndex = i;
+                return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
             }
         }
         
-        if (NearestItemIndex == -1)
+        if (NearestWeaponIndex == -1)
         {
-            float NearestItemDistance = 200.0f;
+            float NearestWeaponDistance = 200.0f;
             
             for (int32 j = 0; j < OutActors.Num(); ++j)
             {
-                float CurItemDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
-                if (NearestItemDistance > CurItemDistance)
+                float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
+                if (NearestWeaponDistance > CurWeaponDistance)
                 {
-                    NearestItemDistance = CurItemDistance;
-                    NearestItemIndex = j;
+                    NearestWeaponDistance = CurWeaponDistance;
+                    NearestWeaponIndex = j;
                 }
             }
             
-            if (NearestItemIndex != -1)
-                return Cast<ABRItem>(OutActors[NearestItemIndex]);
+            if (NearestWeaponIndex != -1)
+                return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
         }
         
         return nullptr;
@@ -222,7 +221,7 @@ void ABRCharacter::EquipWeapon()
     {
         bEquipWeapon = false;
         
-        BRWeapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+        BRWeaponSkeletalMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
         SetDefault();
     }
@@ -233,26 +232,26 @@ void ABRCharacter::EquipWeapon()
         AttackRange = WeaponAttackRange;
         BulletQuantity = WeaponBulletQuantity;
         
-        BRWeapon->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+        BRWeaponSkeletalMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
         
         FName RightHandWeaponSocket = TEXT("weapon_r");
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandWeaponSocket);
+        BRWeaponSkeletalMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandWeaponSocket);
     }
 }
 
 void ABRCharacter::Interaction()
 {
-    ABRItem* BRItem = FindItem();
-    if (BRItem)
+    ABRWeapon* BRWeapon = FindWeapon();
+    if (BRWeapon)
     {
-        BRWeapon->SetSkeletalMesh(BRItem->GetSkeletalMesh());
-        FireSound = BRItem->GetFireSound();
-        MuzzleParticle = BRItem->GetMuzzleParticle();
+        BRWeaponSkeletalMesh->SetSkeletalMesh(BRWeapon->GetSkeletalMesh());
+        FireSound = BRWeapon->GetFireSound();
+        MuzzleParticle = BRWeapon->GetMuzzleParticle();
         
-        WeaponAttackPower = BRItem->GetAttackPower();
-        WeaponAttackRange = BRItem->GetAttackRange();
-        WeaponBulletQuantity = BRItem->GetBulletQuantity();
-        GetWorld()->DestroyActor(BRItem);
+        WeaponAttackPower = BRWeapon->GetAttackPower();
+        WeaponAttackRange = BRWeapon->GetAttackRange();
+        WeaponBulletQuantity = BRWeapon->GetBulletQuantity();
+        GetWorld()->DestroyActor(BRWeapon);
     }
 }
 
@@ -263,7 +262,7 @@ void ABRCharacter::SetDefault()
     BulletQuantity = 10;
     
     FName BackpackWeaponSocket = TEXT("backpack_weapon");
-    BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
+    BRWeaponSkeletalMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
     
     static ConstructorHelpers::FObjectFinder<USoundCue> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/RifleA_Fire_Cue"));
     if (FIRE_SOUND.Succeeded())
