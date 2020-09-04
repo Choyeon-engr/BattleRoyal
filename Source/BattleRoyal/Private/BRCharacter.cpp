@@ -78,7 +78,8 @@ void ABRCharacter::BeginPlay()
 {
     Super::BeginPlay();
     
-    Crosshair = CreateWidget(GetWorld(), CrosshairClass);
+    if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
+        Crosshair = CreateWidget(GetWorld(), CrosshairClass);
 }
 
 void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -124,44 +125,49 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
 
 ABRWeapon* ABRCharacter::FindWeapon()
 {
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
-    
-    TArray<AActor*> ActorsToIgnore;
-    TArray<class AActor*> OutActors;
-    
-    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRWeapon::StaticClass(), ActorsToIgnore, OutActors);
-    
-    if (bResult)
+    if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
     {
-        for (int32 i = 0; i < OutActors.Num(); ++i)
-        {
-            ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[i]);
-            USkeletalMeshComponent* SkeletalMesh = Weapon->GetSkeletalMesh();
-            
-            FHitResult HitResult;
-            FCollisionQueryParams Params(NAME_None, false, this);
-            
-            bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
-            if (bLineTraceResult && OutActors[i] != BRWeapon)
-                return Cast<ABRWeapon>(OutActors[i]);
-        }
+        TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+        ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
         
-        int32 NearestWeaponIndex = -1;
-        float NearestWeaponDistance = 200.0f;
+        TArray<AActor*> ActorsToIgnore;
+        TArray<class AActor*> OutActors;
         
-        for (int32 j = 0; j < OutActors.Num(); ++j)
+        bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRWeapon::StaticClass(), ActorsToIgnore, OutActors);
+        
+        if (bResult)
         {
-            float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
-            if (NearestWeaponDistance > CurWeaponDistance  && OutActors[j] != BRWeapon)
+            for (int32 i = 0; i < OutActors.Num(); ++i)
             {
-                NearestWeaponDistance = CurWeaponDistance;
-                NearestWeaponIndex = j;
+                ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[i]);
+                USkeletalMeshComponent* SkeletalMesh = Weapon->GetSkeletalMesh();
+                
+                FHitResult HitResult;
+                FCollisionQueryParams Params(NAME_None, false, this);
+                
+                bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
+                if (bLineTraceResult && OutActors[i] != BRWeapon)
+                    return Cast<ABRWeapon>(OutActors[i]);
             }
+            
+            int32 NearestWeaponIndex = -1;
+            float NearestWeaponDistance = 200.0f;
+            
+            for (int32 j = 0; j < OutActors.Num(); ++j)
+            {
+                float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
+                if (NearestWeaponDistance > CurWeaponDistance  && OutActors[j] != BRWeapon)
+                {
+                    NearestWeaponDistance = CurWeaponDistance;
+                    NearestWeaponIndex = j;
+                }
+            }
+            
+            if (NearestWeaponIndex != -1)
+                return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
+            else
+                return nullptr;
         }
-        
-        if (NearestWeaponIndex != -1)
-            return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
         else
             return nullptr;
     }
