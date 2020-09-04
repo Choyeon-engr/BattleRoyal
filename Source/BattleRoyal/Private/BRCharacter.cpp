@@ -21,7 +21,21 @@ ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDa
     SpringArm->bUsePawnControlRotation = true;
     Camera->SetFieldOfView(70.0f);
     
-    SetDefault();
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
+    if (MUZZLE_PARTICLE.Succeeded())
+        MuzzleParticle = MUZZLE_PARTICLE.Object;
+    
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_WORLD_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitWorld"));
+    if (HIT_WORLD_PARTICLE.Succeeded())
+        HitWorldParticle = HIT_WORLD_PARTICLE.Object;
+    
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_CHARACTER_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitCharacter"));
+    if (HIT_CHARACTER_PARTICLE.Succeeded())
+        HitCharacterParticle = HIT_CHARACTER_PARTICLE.Object;
+    
+    static ConstructorHelpers::FObjectFinder<USoundCue> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/RifleA_Fire_Cue"));
+    if (FIRE_SOUND.Succeeded())
+        FireSound = FIRE_SOUND.Object;
     
     static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/BattleRoyal/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
     if (CROSSHAIR_CLASS.Succeeded())
@@ -203,7 +217,6 @@ void ABRCharacter::EquipWeapon()
     {
         bEquipWeapon = false;
         BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-        SetDefault();
     }
     else
     {
@@ -225,24 +238,8 @@ void ABRCharacter::Interaction()
         BRWeapon = FindWeapon();
         BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
         BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
+        
+        if (bEquipWeapon)
+            bEquipWeapon = false;
     }
-}
-
-void ABRCharacter::SetDefault()
-{
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
-    if (MUZZLE_PARTICLE.Succeeded())
-        MuzzleParticle = MUZZLE_PARTICLE.Object;
-    
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_WORLD_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitWorld"));
-    if (HIT_WORLD_PARTICLE.Succeeded())
-        HitWorldParticle = HIT_WORLD_PARTICLE.Object;
-    
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_CHARACTER_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitCharacter"));
-    if (HIT_CHARACTER_PARTICLE.Succeeded())
-        HitCharacterParticle = HIT_CHARACTER_PARTICLE.Object;
-    
-    static ConstructorHelpers::FObjectFinder<USoundCue> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/RifleA_Fire_Cue"));
-    if (FIRE_SOUND.Succeeded())
-        FireSound = FIRE_SOUND.Object;
 }

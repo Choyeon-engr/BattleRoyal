@@ -43,8 +43,6 @@ private:
     void EquipWeapon();
     void Interaction();
     
-    void SetDefault();
-    
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class USpringArmComponent* SpringArm;
