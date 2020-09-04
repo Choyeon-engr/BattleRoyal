@@ -2,20 +2,19 @@
 #include "BRWeapon.h"
 #include "BRWeaponDataTableRow.h"
 #include "ParticleDefinitions.h"
+#include "Sound/SoundCue.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/KismetMathLibrary.h"
 
-ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f), AttackPower(10), AttackRange(1000), BulletQuantity(10), WeaponAttackPower(10), WeaponAttackRange(1000), WeaponBulletQuantity(10)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
     GetMesh()->SetCollisionProfileName(TEXT("BRCharacter"));
     
-    BRWeaponSkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("BRWeaponSkeletalMesh"));
     SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
     
-    BRWeaponSkeletalMesh->SetupAttachment(RootComponent);
     SpringArm->SetupAttachment(RootComponent);
     Camera->SetupAttachment(SpringArm);
     
@@ -23,14 +22,6 @@ ABRCharacter::ABRCharacter() : bAim(false), bDead(false), bDamaged(false), bJump
     Camera->SetFieldOfView(70.0f);
     
     SetDefault();
-    
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_WORLD_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitWorld"));
-    if (HIT_WORLD_PARTICLE.Succeeded())
-        HitWorldParticle = HIT_WORLD_PARTICLE.Object;
-    
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_CHARACTER_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitCharacter"));
-    if (HIT_CHARACTER_PARTICLE.Succeeded())
-        HitCharacterParticle = HIT_CHARACTER_PARTICLE.Object;
     
     static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/BattleRoyal/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
     if (CROSSHAIR_CLASS.Succeeded())
@@ -41,14 +32,14 @@ void ABRCharacter::Fire()
 {
     FHitResult HitResult;
     FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
-    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * AttackRange, ECollisionChannel::ECC_GameTraceChannel1, Params);
+    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 1000), ECollisionChannel::ECC_GameTraceChannel1, Params);
     auto Target = Cast<ABRCharacter>(HitResult.Actor);
     
     GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
     
-    UGameplayStatics::SpawnEmitterAtLocation(this, MuzzleParticle, GetMesh()->GetSocketLocation(FName(TEXT("Muzzle_01"))), GetActorRotation());
+    UGameplayStatics::SpawnEmitterAtLocation(this, (bEquipWeapon ? BRWeapon->GetMuzzleParticle() : MuzzleParticle), GetMesh()->GetSocketLocation(FName(TEXT("Muzzle_01"))), GetActorRotation());
     
-    UGameplayStatics::SpawnSoundAtLocation(this, FireSound, GetActorLocation(), GetActorRotation(), 1.0f, 1.0f, 0.0f, nullptr, nullptr, true);
+    UGameplayStatics::SpawnSoundAtLocation(this, bEquipWeapon ? BRWeapon->GetFireSound() : FireSound, GetActorLocation(), GetActorRotation(), 1.0f, 1.0f, 0.0f, nullptr, nullptr, true);
     
     if (bResult)
     {
@@ -56,7 +47,7 @@ void ABRCharacter::Fire()
         {
             UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
             
-            UGameplayStatics::ApplyPointDamage(Target, AttackPower, UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
+            UGameplayStatics::ApplyPointDamage(Target, (bEquipWeapon ? BRWeapon->GetAttackPower() : 10), UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
         }
         else
             UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
@@ -72,8 +63,6 @@ void ABRCharacter::Dead()
 void ABRCharacter::BeginPlay()
 {
     Super::BeginPlay();
-    
-    UGameplayStatics::SpawnEmitterAttached(MuzzleParticle, GetMesh(), FName(TEXT("Muzzle_01")), FVector::ZeroVector, FRotator::ZeroRotator, EAttachLocation::KeepWorldPosition, true, EPSCPoolMethod::None, false);
     
     Crosshair = CreateWidget(GetWorld(), CrosshairClass);
 }
@@ -131,43 +120,36 @@ ABRWeapon* ABRCharacter::FindWeapon()
     
     if (bResult)
     {
-        int32 NearestWeaponIndex = -1;
-        
         for (int32 i = 0; i < OutActors.Num(); ++i)
         {
-            ABRWeapon* BRWeapon = Cast<ABRWeapon>(OutActors[i]);
-            USphereComponent* Sphere = BRWeapon->GetSphere();
+            ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[i]);
+            USkeletalMeshComponent* SkeletalMesh = Weapon->GetSkeletalMesh();
             
             FHitResult HitResult;
             FCollisionQueryParams Params(NAME_None, false, this);
             
-            bool bLineTraceResult = Sphere->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
-            if (bLineTraceResult)
-            {
-                NearestWeaponIndex = i;
-                return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
-            }
+            bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
+            if (bLineTraceResult && OutActors[i] != BRWeapon)
+                return Cast<ABRWeapon>(OutActors[i]);
         }
         
-        if (NearestWeaponIndex == -1)
+        int32 NearestWeaponIndex = -1;
+        float NearestWeaponDistance = 200.0f;
+        
+        for (int32 j = 0; j < OutActors.Num(); ++j)
         {
-            float NearestWeaponDistance = 200.0f;
-            
-            for (int32 j = 0; j < OutActors.Num(); ++j)
+            float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
+            if (NearestWeaponDistance > CurWeaponDistance  && OutActors[j] != BRWeapon)
             {
-                float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
-                if (NearestWeaponDistance > CurWeaponDistance)
-                {
-                    NearestWeaponDistance = CurWeaponDistance;
-                    NearestWeaponIndex = j;
-                }
+                NearestWeaponDistance = CurWeaponDistance;
+                NearestWeaponIndex = j;
             }
-            
-            if (NearestWeaponIndex != -1)
-                return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
         }
         
-        return nullptr;
+        if (NearestWeaponIndex != -1)
+            return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
+        else
+            return nullptr;
     }
     else
         return nullptr;
@@ -220,55 +202,47 @@ void ABRCharacter::EquipWeapon()
     if (bEquipWeapon)
     {
         bEquipWeapon = false;
-        
-        BRWeaponSkeletalMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-        
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
         SetDefault();
     }
     else
     {
         bEquipWeapon = true;
-        AttackPower = WeaponAttackPower;
-        AttackRange = WeaponAttackRange;
-        BulletQuantity = WeaponBulletQuantity;
-        
-        BRWeaponSkeletalMesh->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-        
-        FName RightHandWeaponSocket = TEXT("weapon_r");
-        BRWeaponSkeletalMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, RightHandWeaponSocket);
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
     }
 }
 
 void ABRCharacter::Interaction()
 {
-    ABRWeapon* BRWeapon = FindWeapon();
-    if (BRWeapon)
+    if (FindWeapon())
     {
-        BRWeaponSkeletalMesh->SetSkeletalMesh(BRWeapon->GetSkeletalMesh());
-        FireSound = BRWeapon->GetFireSound();
-        MuzzleParticle = BRWeapon->GetMuzzleParticle();
+        if (BRWeapon)
+        {
+            BRWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+            BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(true);
+        }
         
-        WeaponAttackPower = BRWeapon->GetAttackPower();
-        WeaponAttackRange = BRWeapon->GetAttackRange();
-        WeaponBulletQuantity = BRWeapon->GetBulletQuantity();
-        GetWorld()->DestroyActor(BRWeapon);
+        BRWeapon = FindWeapon();
+        BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
     }
 }
 
 void ABRCharacter::SetDefault()
 {
-    AttackPower = 10;
-    AttackRange = 1000;
-    BulletQuantity = 10;
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
+    if (MUZZLE_PARTICLE.Succeeded())
+        MuzzleParticle = MUZZLE_PARTICLE.Object;
     
-    FName BackpackWeaponSocket = TEXT("backpack_weapon");
-    BRWeaponSkeletalMesh->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, BackpackWeaponSocket);
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_WORLD_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitWorld"));
+    if (HIT_WORLD_PARTICLE.Succeeded())
+        HitWorldParticle = HIT_WORLD_PARTICLE.Object;
+    
+    static ConstructorHelpers::FObjectFinder<UParticleSystem> HIT_CHARACTER_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_HitCharacter"));
+    if (HIT_CHARACTER_PARTICLE.Succeeded())
+        HitCharacterParticle = HIT_CHARACTER_PARTICLE.Object;
     
     static ConstructorHelpers::FObjectFinder<USoundCue> FIRE_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/RifleA_Fire_Cue"));
     if (FIRE_SOUND.Succeeded())
         FireSound = FIRE_SOUND.Object;
-    
-    static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
-    if (MUZZLE_PARTICLE.Succeeded())
-        MuzzleParticle = MUZZLE_PARTICLE.Object;
 }

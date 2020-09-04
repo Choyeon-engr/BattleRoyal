@@ -5,12 +5,9 @@
 
 ABRWeapon::ABRWeapon() : bRandom(false)
 {
-    Sphere = CreateDefaultSubobject<USphereComponent>(TEXT("Sphere"));
-    SkeletalMeshComponent = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMeshComponent"));
+    SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
     
-    Sphere->SetCollisionProfileName(TEXT("BRWeapon"));
-    
-    SkeletalMeshComponent->SetupAttachment(Sphere);
+    SkeletalMesh->SetCollisionProfileName(TEXT("BRWeapon"));
     
     static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/BattleRoyal/DataTable/DT_BRWeapon"));
     if (DataTable.Succeeded())
@@ -49,24 +46,19 @@ void ABRWeapon::Initialize()
         FBRWeaponDataTableRow* BRWeaponDataTableRow = BRWeaponDataTable->FindRow<FBRWeaponDataTableRow>(FName(*(FString::FormatAsNumber(BRWeaponId))), FString(""), true);
         
         BRWeaponName = BRWeaponDataTableRow->GetBRWeaponName();
-        SkeletalMeshComponent->SetSkeletalMesh(BRWeaponDataTableRow->GetSkeletalMesh());
-        SkeletalMesh = BRWeaponDataTableRow->GetSkeletalMesh();
-        FireSound = BRWeaponDataTableRow->GetFireSound();
+        SkeletalMesh->SetSkeletalMesh(BRWeaponDataTableRow->GetSkeletalMesh());
         MuzzleParticle = BRWeaponDataTableRow->GetMuzzleParticle();
+        FireSound = BRWeaponDataTableRow->GetFireSound();
         AttackPower = BRWeaponDataTableRow->GetAttackPower();
         AttackRange = BRWeaponDataTableRow->GetAttackRange();
         BulletQuantity = BRWeaponDataTableRow->GetBulletQuantity();
-        
-        FVector Origin, BoxExtent;
-        float SphereRadius;
-        UKismetSystemLibrary::GetComponentBounds(SkeletalMeshComponent, Origin, BoxExtent, SphereRadius);
-        Sphere->SetSphereRadius(SphereRadius, true);
     }
     else
     {
         BRWeaponName = FName(TEXT(""));
-        SkeletalMeshComponent->SetSkeletalMesh(nullptr);
-        SkeletalMesh = nullptr;
+        SkeletalMesh->SetSkeletalMesh(nullptr);
+        MuzzleParticle = nullptr;
+        FireSound = nullptr;
         AttackPower = 0;
         AttackRange = 0;
         BulletQuantity = 0;

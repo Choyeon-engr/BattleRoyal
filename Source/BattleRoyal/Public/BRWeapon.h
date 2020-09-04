@@ -14,10 +14,9 @@ public:
     UFUNCTION(BlueprintCallable)
     FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
     
-    FORCEINLINE USphereComponent* GetSphere() const noexcept { return Sphere; }
-    FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
-    FORCEINLINE class USoundCue* GetFireSound() const noexcept { return FireSound; }
+    FORCEINLINE USkeletalMeshComponent* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
     FORCEINLINE UParticleSystem* GetMuzzleParticle() const noexcept { return MuzzleParticle; }
+    FORCEINLINE class USoundCue* GetFireSound() const noexcept { return FireSound; }
     FORCEINLINE int32 GetAttackPower() const noexcept { return AttackPower; }
     FORCEINLINE int32 GetAttackRange() const noexcept { return AttackRange; }
     FORCEINLINE int32 GetBulletQuantity() const noexcept { return BulletQuantity; }
@@ -33,19 +32,13 @@ private:
     
 private:
     UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
-    USphereComponent* Sphere;
-    
-    UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
-    USkeletalMeshComponent* SkeletalMeshComponent;
-    
-    UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
-    USkeletalMesh* SkeletalMesh;
-    
-    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-    class USoundCue* FireSound;
+    USkeletalMeshComponent* SkeletalMesh;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     class UParticleSystem* MuzzleParticle;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    class USoundCue* FireSound;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     bool bRandom;
