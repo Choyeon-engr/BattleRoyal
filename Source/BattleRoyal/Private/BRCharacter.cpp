@@ -7,7 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bEquipWeapon(false), bAim(false), bDead(false), bDamaged(false), bJump(false), Health(100.0f), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -132,6 +132,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     
     DOREPLIFETIME(ABRCharacter, ForwardValue);
     DOREPLIFETIME(ABRCharacter, RightValue);
+    DOREPLIFETIME(ABRCharacter, bEquipWeapon);
 }
 
 ABRWeapon* ABRCharacter::FindWeapon()
@@ -157,8 +158,8 @@ ABRWeapon* ABRCharacter::FindWeapon()
                 FCollisionQueryParams Params(NAME_None, false, this);
                 
                 bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
-                if (bLineTraceResult && OutActors[i] != BRWeapon)
-                    return Cast<ABRWeapon>(OutActors[i]);
+                if (bLineTraceResult && SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
+                    return Weapon;
             }
             
             int32 NearestWeaponIndex = -1;
@@ -166,8 +167,9 @@ ABRWeapon* ABRCharacter::FindWeapon()
             
             for (int32 j = 0; j < OutActors.Num(); ++j)
             {
+                ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[j]);
                 float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
-                if (NearestWeaponDistance > CurWeaponDistance  && OutActors[j] != BRWeapon)
+                if (NearestWeaponDistance > CurWeaponDistance && Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
                 {
                     NearestWeaponDistance = CurWeaponDistance;
                     NearestWeaponIndex = j;
@@ -237,32 +239,42 @@ void ABRCharacter::Jump()
 void ABRCharacter::EquipWeapon()
 {
     if (bEquipWeapon)
-    {
-        bEquipWeapon = false;
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-    }
+        ServerEquipWeapon(false);
     else
-    {
-        bEquipWeapon = true;
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
-    }
+        ServerEquipWeapon(true);
 }
 
 void ABRCharacter::Interaction()
 {
     if (FindWeapon())
-    {
-        if (BRWeapon)
-        {
-            BRWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-            BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(true);
-        }
-        
-        BRWeapon = FindWeapon();
-        BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
+        ServerInteraction(FindWeapon());
+}
+
+void ABRCharacter::OnRepEquipWeapon()
+{
+    if (bEquipWeapon)
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
+    else
         BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-        
-        if (bEquipWeapon)
-            bEquipWeapon = false;
+}
+
+void ABRCharacter::ServerInteraction_Implementation(ABRWeapon* Weapon)
+{
+    MulticastInteraction(Weapon);
+}
+
+void ABRCharacter::MulticastInteraction_Implementation(ABRWeapon* Weapon)
+{
+    if (BRWeapon)
+    {
+        BRWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+        BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(true);
     }
+    
+    BRWeapon = Weapon;
+    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
+    BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
+    
+    if (bEquipWeapon)
+        bEquipWeapon = false;
 }

@@ -51,8 +51,25 @@ private:
     UFUNCTION(Server, Unreliable)
     void ServerMoveRight(const float AxisValue);
     
+    UFUNCTION(Server, Reliable)
+    void ServerInteraction(class ABRWeapon* Weapon);
+    
+    UFUNCTION(NetMulticast, Reliable)
+    void MulticastInteraction(class ABRWeapon* Weapon);
+    
+    UFUNCTION(Server, Reliable)
+    void ServerEquipWeapon(bool IsEquipWeapon);
+    
+    UFUNCTION()
+    void OnRepEquipWeapon();
+    
     FORCEINLINE void ServerMoveForward_Implementation(const float AxisValue) { ForwardValue = AxisValue; }
     FORCEINLINE void ServerMoveRight_Implementation(const float AxisValue) { RightValue = AxisValue; }
+    
+    void ServerInteraction_Implementation(class ABRWeapon* Weapon);
+    void MulticastInteraction_Implementation(class ABRWeapon* Weapon);
+    
+    FORCEINLINE void ServerEquipWeapon_Implementation(bool IsEquipWeapon) { bEquipWeapon = IsEquipWeapon; }
     
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
@@ -91,11 +108,13 @@ private:
     UPROPERTY(Replicated)
     float RightValue;
     
+    UPROPERTY(ReplicatedUsing = OnRepEquipWeapon)
+    bool bEquipWeapon;
+    
     bool bAim;
     bool bDead;
     bool bDamaged;
     bool bJump;
-    bool bEquipWeapon;
     
     float PreForwardValue;
     float PreRightValue;
