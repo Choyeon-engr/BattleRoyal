@@ -5,6 +5,7 @@
 #include "Sound/SoundCue.h"
 #include "Blueprint/UserWidget.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "Net/UnrealNetwork.h"
 
 ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDamaged(false), bJump(false), bEquipWeapon(false), Health(100.0f), DeadTimer(5.0f)
 {
@@ -20,6 +21,8 @@ ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDa
     
     SpringArm->bUsePawnControlRotation = true;
     Camera->SetFieldOfView(70.0f);
+    
+    GetCharacterMovement()->MaxWalkSpeed = 400.0f;
     
     static ConstructorHelpers::FObjectFinder<UParticleSystem> MUZZLE_PARTICLE(TEXT("/Game/ParagonWraith/FX/Particles/Abilities/ScopedShot/FX/P_Wraith_Sniper_MuzzleFlash"));
     if (MUZZLE_PARTICLE.Succeeded())
@@ -123,6 +126,14 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
     return FinalDamage;
 }
 
+void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    
+    DOREPLIFETIME(ABRCharacter, ForwardValue);
+    DOREPLIFETIME(ABRCharacter, RightValue);
+}
+
 ABRWeapon* ABRCharacter::FindWeapon()
 {
     if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
@@ -179,12 +190,18 @@ void ABRCharacter::MoveForward(const float AxisValue)
 {
     ForwardValue = AxisValue;
     AddMovementInput(GetActorForwardVector(), AxisValue);
+    if (ForwardValue != PreForwardValue)
+        ServerMoveForward(AxisValue);
+    PreForwardValue = ForwardValue;
 }
 
 void ABRCharacter::MoveRight(const float AxisValue)
 {
     RightValue = AxisValue;
     AddMovementInput(GetActorRightVector(), AxisValue);
+    if (RightValue != PreRightValue)
+        ServerMoveRight(AxisValue);
+    PreRightValue = RightValue;
 }
 
 void ABRCharacter::Aim()

@@ -31,6 +31,8 @@ protected:
     
     float TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
     
+    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
+    
 private:
     UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = true))
     ABRWeapon* FindWeapon();
@@ -42,6 +44,15 @@ private:
     void Jump();
     void EquipWeapon();
     void Interaction();
+    
+    UFUNCTION(Server, Unreliable)
+    void ServerMoveForward(const float AxisValue);
+    
+    UFUNCTION(Server, Unreliable)
+    void ServerMoveRight(const float AxisValue);
+    
+    FORCEINLINE void ServerMoveForward_Implementation(const float AxisValue) { ForwardValue = AxisValue; }
+    FORCEINLINE void ServerMoveRight_Implementation(const float AxisValue) { RightValue = AxisValue; }
     
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
@@ -74,7 +85,10 @@ private:
     UPROPERTY()
     class UUserWidget* Crosshair;
     
+    UPROPERTY(Replicated)
     float ForwardValue;
+    
+    UPROPERTY(Replicated)
     float RightValue;
     
     bool bAim;
@@ -83,6 +97,8 @@ private:
     bool bJump;
     bool bEquipWeapon;
     
+    float PreForwardValue;
+    float PreRightValue;
     float Health;
     float DeadTimer;
     
