@@ -7,7 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bEquipWeapon(false), bAim(false), bDead(false), bDamaged(false), bJump(false), Health(100.0f), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bEquipWeapon(false), bDead(false), bDamaged(false), bJump(false), Health(100.0f), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -132,6 +132,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     
     DOREPLIFETIME(ABRCharacter, ForwardValue);
     DOREPLIFETIME(ABRCharacter, RightValue);
+    DOREPLIFETIME(ABRCharacter, bAim);
     DOREPLIFETIME(ABRCharacter, bEquipWeapon);
 }
 
@@ -211,12 +212,14 @@ void ABRCharacter::Aim()
     if (bAim)
     {
         bAim = false;
+        ServerAim(false);
         Camera->SetFieldOfView(70.0f);
         Crosshair->RemoveFromParent();
     }
     else
     {
         bAim = true;
+        ServerAim(true);
         Camera->SetFieldOfView(35.0f);
         Crosshair->AddToViewport();
     }
