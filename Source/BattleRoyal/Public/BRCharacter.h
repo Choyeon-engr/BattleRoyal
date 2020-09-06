@@ -72,6 +72,9 @@ private:
     UFUNCTION(Server, Reliable)
     void ServerInteraction(class ABRWeapon* Weapon);
     
+    UFUNCTION(NetMulticast, Reliable)
+    void MulticastInteraction();
+    
     void ServerFire_Implementation(bool IsCharacter, FVector SpawnLocation);
     void MulticastFire_Implementation(bool IsCharacter, FVector SpawnLocation);
     
@@ -83,6 +86,7 @@ private:
     FORCEINLINE void ServerEquipWeapon_Implementation(bool IsEquipWeapon) { bEquipWeapon = IsEquipWeapon; }
     
     void ServerInteraction_Implementation(class ABRWeapon* Weapon);
+    void MulticastInteraction_Implementation();
     
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))

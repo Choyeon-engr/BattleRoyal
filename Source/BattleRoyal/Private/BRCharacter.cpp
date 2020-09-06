@@ -300,10 +300,13 @@ void ABRCharacter::MulticastFire_Implementation(bool IsCharacter, FVector SpawnL
 void ABRCharacter::ServerInteraction_Implementation(ABRWeapon* Weapon)
 {
     if (BRWeapon)
-    {
-        BRWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-        BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(true);
-    }
+        MulticastInteraction();
     
     BRWeapon = Weapon;
+}
+
+void ABRCharacter::MulticastInteraction_Implementation()
+{
+    BRWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(true);
 }
