@@ -45,6 +45,9 @@ private:
     void EquipWeapon();
     void Interaction();
     
+    UFUNCTION()
+    void OnRepBRWeapon();
+    
     UFUNCTION(Server, Unreliable)
     void ServerMoveForward(const float AxisValue);
     
@@ -63,9 +66,6 @@ private:
     UFUNCTION(Server, Reliable)
     void ServerInteraction(class ABRWeapon* Weapon);
     
-    UFUNCTION(NetMulticast, Reliable)
-    void MulticastInteraction(class ABRWeapon* Weapon);
-    
     FORCEINLINE void ServerMoveForward_Implementation(const float AxisValue) { ForwardValue = AxisValue; }
     FORCEINLINE void ServerMoveRight_Implementation(const float AxisValue) { RightValue = AxisValue; }
     
@@ -74,7 +74,6 @@ private:
     FORCEINLINE void ServerEquipWeapon_Implementation(bool IsEquipWeapon) { bEquipWeapon = IsEquipWeapon; }
     
     void ServerInteraction_Implementation(class ABRWeapon* Weapon);
-    void MulticastInteraction_Implementation(class ABRWeapon* Weapon);
     
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
@@ -86,7 +85,7 @@ private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     TSubclassOf<UCameraShake> CameraShake;
     
-    UPROPERTY()
+    UPROPERTY(ReplicatedUsing = OnRepBRWeapon)
     class ABRWeapon* BRWeapon;
     
     UPROPERTY()

@@ -130,6 +130,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     
+    DOREPLIFETIME(ABRCharacter, BRWeapon);
     DOREPLIFETIME(ABRCharacter, ForwardValue);
     DOREPLIFETIME(ABRCharacter, RightValue);
     DOREPLIFETIME(ABRCharacter, bAim);
@@ -253,6 +254,16 @@ void ABRCharacter::Interaction()
         ServerInteraction(FindWeapon());
 }
 
+void ABRCharacter::OnRepBRWeapon()
+{
+    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
+    
+    if (bEquipWeapon)
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
+    else
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
+}
+
 void ABRCharacter::OnRepEquipWeapon()
 {
     if (bEquipWeapon)
@@ -263,11 +274,6 @@ void ABRCharacter::OnRepEquipWeapon()
 
 void ABRCharacter::ServerInteraction_Implementation(ABRWeapon* Weapon)
 {
-    MulticastInteraction(Weapon);
-}
-
-void ABRCharacter::MulticastInteraction_Implementation(ABRWeapon* Weapon)
-{
     if (BRWeapon)
     {
         BRWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
@@ -275,9 +281,4 @@ void ABRCharacter::MulticastInteraction_Implementation(ABRWeapon* Weapon)
     }
     
     BRWeapon = Weapon;
-    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
-    BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-    
-    if (bEquipWeapon)
-        bEquipWeapon = false;
 }
