@@ -45,6 +45,12 @@ private:
     void EquipWeapon();
     void Interaction();
     
+    UFUNCTION(Server, Unreliable)
+    void ServerFire(bool IsCharacter, FVector SpawnLocation);
+    
+    UFUNCTION(NetMulticast, Unreliable)
+    void MulticastFire(bool IsCharacter, FVector SpawnLocation);
+    
     UFUNCTION()
     void OnRepBRWeapon();
     
@@ -65,6 +71,9 @@ private:
     
     UFUNCTION(Server, Reliable)
     void ServerInteraction(class ABRWeapon* Weapon);
+    
+    void ServerFire_Implementation(bool IsCharacter, FVector SpawnLocation);
+    void MulticastFire_Implementation(bool IsCharacter, FVector SpawnLocation);
     
     FORCEINLINE void ServerMoveForward_Implementation(const float AxisValue) { ForwardValue = AxisValue; }
     FORCEINLINE void ServerMoveRight_Implementation(const float AxisValue) { RightValue = AxisValue; }

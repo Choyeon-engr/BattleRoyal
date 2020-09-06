@@ -47,28 +47,37 @@ ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bEquipWeapon(fals
 
 void ABRCharacter::Fire()
 {
-    FHitResult HitResult;
-    FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
-    bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 1000), ECollisionChannel::ECC_GameTraceChannel1, Params);
-    auto Target = Cast<ABRCharacter>(HitResult.Actor);
-    
-    GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
+    if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        FHitResult HitResult;
+        FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
+        bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 1000), ECollisionChannel::ECC_GameTraceChannel1, Params);
+        auto Target = Cast<ABRCharacter>(HitResult.Actor);
+        
+        GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
+        
+        if (bResult)
+        {
+            if (Target)
+            {
+                UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
+                
+                UGameplayStatics::ApplyPointDamage(Target, (bEquipWeapon ? BRWeapon->GetAttackPower() : 10), UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
+                
+                ServerFire(true, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f);
+            }
+            else
+            {
+                UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
+                
+                ServerFire(false, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f);
+            }
+        }
+    }
     
     UGameplayStatics::SpawnEmitterAtLocation(this, (bEquipWeapon ? BRWeapon->GetMuzzleParticle() : MuzzleParticle), GetMesh()->GetSocketLocation(FName(TEXT("Muzzle_01"))), GetActorRotation());
     
     UGameplayStatics::SpawnSoundAtLocation(this, bEquipWeapon ? BRWeapon->GetFireSound() : FireSound, GetActorLocation(), GetActorRotation(), 1.0f, 1.0f, 0.0f, nullptr, nullptr, true);
-    
-    if (bResult)
-    {
-        if (Target)
-        {
-            UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
-            
-            UGameplayStatics::ApplyPointDamage(Target, (bEquipWeapon ? BRWeapon->GetAttackPower() : 10), UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
-        }
-        else
-            UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
-    }
 }
 
 void ABRCharacter::Dead()
@@ -270,6 +279,22 @@ void ABRCharacter::OnRepEquipWeapon()
         BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
     else
         BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
+}
+
+void ABRCharacter::ServerFire_Implementation(bool IsCharacter, FVector SpawnLocation)
+{
+    MulticastFire(IsCharacter, SpawnLocation);
+}
+
+void ABRCharacter::MulticastFire_Implementation(bool IsCharacter, FVector SpawnLocation)
+{
+    if (!HasAuthority() && GetController() != UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        if (IsCharacter)
+            UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, SpawnLocation, FRotator::ZeroRotator);
+        else
+            UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, SpawnLocation, FRotator::ZeroRotator);
+    }
 }
 
 void ABRCharacter::ServerInteraction_Implementation(ABRWeapon* Weapon)
