@@ -8,6 +8,7 @@ ABRWeapon::ABRWeapon() : bRandom(false)
     SkeletalMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("SkeletalMesh"));
     
     SkeletalMesh->SetCollisionProfileName(TEXT("BRWeapon"));
+    SkeletalMesh->SetSimulatePhysics(true);
     
     static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/BattleRoyal/DataTable/DT_BRWeapon"));
     if (DataTable.Succeeded())
