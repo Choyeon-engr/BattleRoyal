@@ -103,7 +103,7 @@ void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
     PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ABRCharacter::MoveRight);
     
     PlayerInputComponent->BindAxis(TEXT("Turn"), this, &ABRCharacter::AddControllerYawInput);
-    PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ABRCharacter::AddControllerPitchInput);
+    PlayerInputComponent->BindAxis(TEXT("LookUp"), this, &ABRCharacter::LookUp);
     
     PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Pressed, this, &ABRCharacter::Aim);
     PlayerInputComponent->BindAction(TEXT("Aim"), EInputEvent::IE_Released, this, &ABRCharacter::Aim);
@@ -143,6 +143,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     DOREPLIFETIME(ABRCharacter, BRWeapon);
     DOREPLIFETIME(ABRCharacter, ForwardValue);
     DOREPLIFETIME(ABRCharacter, RightValue);
+    DOREPLIFETIME(ABRCharacter, LookUpValue);
     DOREPLIFETIME(ABRCharacter, bAim);
     DOREPLIFETIME(ABRCharacter, bDead);
     DOREPLIFETIME(ABRCharacter, bDamaged);
@@ -220,6 +221,18 @@ void ABRCharacter::MoveRight(const float AxisValue)
     PreRightValue = RightValue;
 }
 
+void ABRCharacter::LookUp(const float AxisValue)
+{
+    AddControllerPitchInput(AxisValue);
+    
+    LookUpValue = GetControlRotation().Pitch;
+    
+    if (abs(LookUpValue - PreLookUpValue) > 1.0f)
+        ServerLookUp(LookUpValue);
+    
+    PreLookUpValue = LookUpValue;
+}
+
 void ABRCharacter::Aim()
 {
     if (bAim)
@@ -266,6 +279,31 @@ void ABRCharacter::Interaction()
         ServerInteraction(FindWeapon());
 }
 
+void ABRCharacter::OnRepBRWeapon()
+{
+    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
+    
+    if (bEquipWeapon)
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
+    else
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
+}
+
+void ABRCharacter::ServerMoveForward_Implementation(const float AxisValue)
+{
+    ForwardValue = AxisValue;
+}
+
+void ABRCharacter::ServerMoveRight_Implementation(const float AxisValue)
+{
+    RightValue = AxisValue;
+}
+
+void ABRCharacter::ServerLookUp_Implementation(const float AxisValue)
+{
+    LookUpValue = AxisValue;
+}
+
 void ABRCharacter::ServerFire_Implementation(bool IsCharacter, FVector SpawnLocation)
 {
     MulticastFire(IsCharacter, SpawnLocation);
@@ -285,26 +323,6 @@ void ABRCharacter::MulticastFire_Implementation(bool IsCharacter, FVector SpawnL
 void ABRCharacter::ServerApplyPointDamage_Implementation(ABRCharacter* DamagedActor, float BaseDamage, const FVector & HitFromDirection, const FHitResult & HitInfo, AController* EventInstigator, AActor* DamageCauser, TSubclassOf <class UDamageType> DamageTypeClass)
 {
     UGameplayStatics::ApplyPointDamage(DamagedActor, BaseDamage, HitFromDirection, HitInfo, EventInstigator, DamageCauser, DamageTypeClass);
-}
-
-void ABRCharacter::OnRepBRWeapon()
-{
-    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
-    
-    if (bEquipWeapon)
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
-    else
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-}
-
-void ABRCharacter::ServerMoveForward_Implementation(const float AxisValue)
-{
-    ForwardValue = AxisValue;
-}
-
-void ABRCharacter::ServerMoveRight_Implementation(const float AxisValue)
-{
-    RightValue = AxisValue;
 }
 
 void ABRCharacter::ServerAim_Implementation(bool IsAim)

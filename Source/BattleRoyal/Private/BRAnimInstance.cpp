@@ -13,13 +13,14 @@ void UBRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
     {
         ForwardValue = BRCharacter->GetForwardValue();
         RightValue = BRCharacter->GetRightValue();
+        LookUpValue = BRCharacter->GetLookUpValue();
         
         bAim = BRCharacter->IsAim();
         bDead = BRCharacter->IsDead();
         bDamaged = BRCharacter->IsDamaged();
         
         if (bAim)
-            ControllerPitch = BRCharacter->GetControllerPitch();
+            ControllerPitch = LookUpValue;
         else
             ControllerPitch = 0.0f;
         

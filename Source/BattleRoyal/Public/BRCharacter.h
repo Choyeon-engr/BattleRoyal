@@ -18,6 +18,7 @@ public:
     
     FORCEINLINE float GetForwardValue() const noexcept { return ForwardValue; }
     FORCEINLINE float GetRightValue() const noexcept { return RightValue; }
+    FORCEINLINE float GetLookUpValue() const  noexcept { return LookUpValue; }
     FORCEINLINE float GetControllerPitch() const noexcept { return GetControlRotation().Pitch; }
     
     FORCEINLINE bool IsAim() const noexcept { return bAim; }
@@ -39,11 +40,21 @@ private:
     
     void MoveForward(const float AxisValue);
     void MoveRight(const float AxisValue);
+    void LookUp(const float AxisValue);
     
     void Aim();
     void Jump();
     void EquipWeapon();
     void Interaction();
+    
+    UFUNCTION(Server, Unreliable)
+    void ServerMoveForward(const float AxisValue);
+    
+    UFUNCTION(Server, Unreliable)
+    void ServerMoveRight(const float AxisValue);
+    
+    UFUNCTION(Server, Unreliable)
+    void ServerLookUp(const float AxisValue);
     
     UFUNCTION(Server, Unreliable)
     void ServerFire(bool IsCharacter, FVector SpawnLocation);
@@ -56,12 +67,6 @@ private:
     
     UFUNCTION()
     void OnRepBRWeapon();
-    
-    UFUNCTION(Server, Unreliable)
-    void ServerMoveForward(const float AxisValue);
-    
-    UFUNCTION(Server, Unreliable)
-    void ServerMoveRight(const float AxisValue);
     
     UFUNCTION(Server, Reliable)
     void ServerAim(bool IsAim);
@@ -128,6 +133,9 @@ private:
     float RightValue;
     
     UPROPERTY(Replicated)
+    float LookUpValue;
+    
+    UPROPERTY(Replicated)
     bool bAim;
     
     UPROPERTY(Replicated)
@@ -143,6 +151,7 @@ private:
     
     float PreForwardValue;
     float PreRightValue;
+    float PreLookUpValue;
     float Health;
     float DeadTimer;
     
