@@ -62,7 +62,7 @@ void ABRCharacter::Fire()
             {
                 UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
                 
-                UGameplayStatics::ApplyPointDamage(Target, (bEquipWeapon ? BRWeapon->GetAttackPower() : 10), UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
+                ServerApplyPointDamage(Target, (bEquipWeapon ? BRWeapon->GetAttackPower() : 10), UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
                 
                 ServerFire(true, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f);
             }
@@ -263,24 +263,6 @@ void ABRCharacter::Interaction()
         ServerInteraction(FindWeapon());
 }
 
-void ABRCharacter::OnRepBRWeapon()
-{
-    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
-    
-    if (bEquipWeapon)
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
-    else
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-}
-
-void ABRCharacter::OnRepEquipWeapon()
-{
-    if (bEquipWeapon)
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
-    else
-        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
-}
-
 void ABRCharacter::ServerFire_Implementation(bool IsCharacter, FVector SpawnLocation)
 {
     MulticastFire(IsCharacter, SpawnLocation);
@@ -295,6 +277,49 @@ void ABRCharacter::MulticastFire_Implementation(bool IsCharacter, FVector SpawnL
         else
             UGameplayStatics::SpawnEmitterAtLocation(this, HitWorldParticle, SpawnLocation, FRotator::ZeroRotator);
     }
+}
+
+void ABRCharacter::ServerApplyPointDamage_Implementation(ABRCharacter* DamagedActor, float BaseDamage, const FVector & HitFromDirection, const FHitResult & HitInfo, AController* EventInstigator, AActor* DamageCauser, TSubclassOf <class UDamageType> DamageTypeClass)
+{
+    UGameplayStatics::ApplyPointDamage(DamagedActor, BaseDamage, HitFromDirection, HitInfo, EventInstigator, DamageCauser, DamageTypeClass);
+}
+
+void ABRCharacter::OnRepBRWeapon()
+{
+    BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(false);
+    
+    if (bEquipWeapon)
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
+    else
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
+}
+
+void ABRCharacter::ServerMoveForward_Implementation(const float AxisValue)
+{
+    ForwardValue = AxisValue;
+}
+
+void ABRCharacter::ServerMoveRight_Implementation(const float AxisValue)
+{
+    RightValue = AxisValue;
+}
+
+void ABRCharacter::ServerAim_Implementation(bool IsAim)
+{
+    bAim = IsAim;
+}
+
+void ABRCharacter::ServerEquipWeapon_Implementation(bool IsEquipWeapon)
+{
+    bEquipWeapon = IsEquipWeapon;
+}
+
+void ABRCharacter::OnRepEquipWeapon()
+{
+    if (bEquipWeapon)
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("weapon_r")));
+    else
+        BRWeapon->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetNotIncludingScale, FName(TEXT("backpack_weapon")));
 }
 
 void ABRCharacter::ServerInteraction_Implementation(ABRWeapon* Weapon)

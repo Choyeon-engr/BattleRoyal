@@ -51,6 +51,9 @@ private:
     UFUNCTION(NetMulticast, Unreliable)
     void MulticastFire(bool IsCharacter, FVector SpawnLocation);
     
+    UFUNCTION(Server, Reliable)
+    void ServerApplyPointDamage(ABRCharacter* DamagedActor, float BaseDamage, const FVector & HitFromDirection, const FHitResult & HitInfo, AController* EventInstigator, AActor* DamageCauser, TSubclassOf <class UDamageType> DamageTypeClass);
+    
     UFUNCTION()
     void OnRepBRWeapon();
     
@@ -74,19 +77,6 @@ private:
     
     UFUNCTION(NetMulticast, Reliable)
     void MulticastInteraction();
-    
-    void ServerFire_Implementation(bool IsCharacter, FVector SpawnLocation);
-    void MulticastFire_Implementation(bool IsCharacter, FVector SpawnLocation);
-    
-    FORCEINLINE void ServerMoveForward_Implementation(const float AxisValue) { ForwardValue = AxisValue; }
-    FORCEINLINE void ServerMoveRight_Implementation(const float AxisValue) { RightValue = AxisValue; }
-    
-    FORCEINLINE void ServerAim_Implementation(bool IsAim) { bAim = IsAim; }
-    
-    FORCEINLINE void ServerEquipWeapon_Implementation(bool IsEquipWeapon) { bEquipWeapon = IsEquipWeapon; }
-    
-    void ServerInteraction_Implementation(class ABRWeapon* Weapon);
-    void MulticastInteraction_Implementation();
     
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
