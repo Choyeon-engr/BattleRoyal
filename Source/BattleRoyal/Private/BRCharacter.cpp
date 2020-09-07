@@ -82,9 +82,8 @@ void ABRCharacter::Fire()
 
 void ABRCharacter::Dead()
 {
-    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
-    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-    GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+    GetMesh()->SetSimulatePhysics(true);
     GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda([this]() -> void { Destroy(); }), DeadTimer, false);
 }
 
@@ -316,6 +315,14 @@ void ABRCharacter::ServerAim_Implementation(bool IsAim)
 void ABRCharacter::ServerDead_Implementation()
 {
     bDead = true;
+    MulticastDead();
+}
+
+void ABRCharacter::MulticastDead_Implementation()
+{
+    GetCharacterMovement()->SetMovementMode(EMovementMode::MOVE_None);
+    GetCapsuleComponent()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    GetMesh()->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void ABRCharacter::ServerDamaged_Implementation()

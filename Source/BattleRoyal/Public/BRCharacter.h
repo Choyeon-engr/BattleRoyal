@@ -69,6 +69,9 @@ private:
     UFUNCTION(Server, Reliable)
     void ServerDead();
     
+    UFUNCTION(NetMulticast, Reliable)
+    void MulticastDead();
+    
     UFUNCTION(Server, Reliable)
     void ServerDamaged();
     
