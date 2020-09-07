@@ -14,7 +14,7 @@ public:
     
     void Fire();
     void Dead();
-    FORCEINLINE void ResetDamaged() noexcept { bDamaged = false; }
+    FORCEINLINE void ResetDamaged() { ServerResetDamaged(); }
     
     FORCEINLINE float GetForwardValue() const noexcept { return ForwardValue; }
     FORCEINLINE float GetRightValue() const noexcept { return RightValue; }
@@ -68,6 +68,12 @@ private:
     
     UFUNCTION(Server, Reliable)
     void ServerDead();
+    
+    UFUNCTION(Server, Reliable)
+    void ServerDamaged();
+    
+    UFUNCTION(Server, Reliable)
+    void ServerResetDamaged();
     
     UFUNCTION(Server, Reliable)
     void ServerEquipWeapon(bool IsEquipWeapon);
@@ -124,11 +130,13 @@ private:
     UPROPERTY(Replicated)
     bool bDead;
     
+    UPROPERTY(Replicated)
+    bool bDamaged;
+    
     UPROPERTY(ReplicatedUsing = OnRepEquipWeapon)
     bool bEquipWeapon;
     
     bool bJump;
-    bool bDamaged;
     
     float PreForwardValue;
     float PreRightValue;

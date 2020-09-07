@@ -7,7 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bEquipWeapon(false), bJump(false), bDamaged(false), Health(100.0f), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), bJump(false), Health(100.0f), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -130,7 +130,7 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
     if (HitResult.BoneName == TEXT("head") || Health <= 0.0f)
         ServerDead();
     else
-        bDamaged = true;
+        ServerDamaged();
     
     return FinalDamage;
 }
@@ -144,6 +144,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     DOREPLIFETIME(ABRCharacter, RightValue);
     DOREPLIFETIME(ABRCharacter, bAim);
     DOREPLIFETIME(ABRCharacter, bDead);
+    DOREPLIFETIME(ABRCharacter, bDamaged);
     DOREPLIFETIME(ABRCharacter, bEquipWeapon);
 }
 
@@ -313,6 +314,16 @@ void ABRCharacter::ServerAim_Implementation(bool IsAim)
 void ABRCharacter::ServerDead_Implementation()
 {
     bDead = true;
+}
+
+void ABRCharacter::ServerDamaged_Implementation()
+{
+    bDamaged = true;
+}
+
+void ABRCharacter::ServerResetDamaged_Implementation()
+{
+    bDamaged = false;
 }
 
 void ABRCharacter::ServerEquipWeapon_Implementation(bool IsEquipWeapon)
