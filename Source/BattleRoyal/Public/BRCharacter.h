@@ -67,6 +67,9 @@ private:
     void ServerAim(bool IsAim);
     
     UFUNCTION(Server, Reliable)
+    void ServerDead();
+    
+    UFUNCTION(Server, Reliable)
     void ServerEquipWeapon(bool IsEquipWeapon);
     
     UFUNCTION()
@@ -118,12 +121,14 @@ private:
     UPROPERTY(Replicated)
     bool bAim;
     
+    UPROPERTY(Replicated)
+    bool bDead;
+    
     UPROPERTY(ReplicatedUsing = OnRepEquipWeapon)
     bool bEquipWeapon;
     
-    bool bDead;
-    bool bDamaged;
     bool bJump;
+    bool bDamaged;
     
     float PreForwardValue;
     float PreRightValue;
