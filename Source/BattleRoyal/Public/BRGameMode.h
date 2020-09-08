@@ -12,7 +12,7 @@ class BATTLEROYAL_API ABRGameMode : public AGameModeBase
 protected:
     void BeginPlay() override;
     
-    APlayerController* Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString & Portal, const FString & Options, const FUniqueNetIdRepl & UniqueId, FString & ErrorMessage) override;
+    void PreLogin(const class FString & Options, const class FString & Address, const FUniqueNetIdRepl & UniqueId, class FString & ErrorMessage) override;
     
 private:
     FTimerHandle MainTimerHandle = { };
