@@ -9,11 +9,19 @@ class BATTLEROYAL_API ABRGameMode : public AGameModeBase
 {
     GENERATED_BODY()
     
+public:
+    ABRGameMode();
+    
 protected:
     void BeginPlay() override;
     
-    void PreLogin(const class FString & Options, const class FString & Address, const FUniqueNetIdRepl & UniqueId, class FString & ErrorMessage) override;
+    APlayerController* Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString & Portal, const FString & Options, const FUniqueNetIdRepl & UniqueId, FString & ErrorMessage) override;
     
+    void Logout(AController* Exiting) override;
+    
+private:
+    void Broadcast(const FString & Message);
+     
 private:
     FTimerHandle MainTimerHandle = { };
     
@@ -23,4 +31,10 @@ private:
         BATTLE,
         RESULT
     } CurGameProgress;
+    
+    UPROPERTY(Transient)
+    TArray<class ABRPlayerController*> AliveClients;
+    
+    int32 MinNumOfPlayer;
+    int32 TimeRemaining;
 };
