@@ -1,8 +1,8 @@
 #pragma once
 
 #include "BattleRoyal.h"
-#include "Sound/SoundCue.h"
 #include "Engine/DataTable.h"
+#include "Sound/SoundCue.h"
 #include "BRWeaponDataTableRow.generated.h"
 
 USTRUCT(Atomic, BlueprintType)
@@ -14,8 +14,8 @@ public:
     FORCEINLINE int32 GetBRWeaponId() const noexcept { return BRWeaponId; }
     FORCEINLINE FName GetBRWeaponName() const noexcept { return BRWeaponName; }
     FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
-    FORCEINLINE USoundCue* GetFireSound() const noexcept { return FireSound; }
     FORCEINLINE UParticleSystem* GetMuzzleParticle() const  noexcept { return MuzzleParticle; }
+    FORCEINLINE USoundCue* GetFireSound() const noexcept { return FireSound; }
     FORCEINLINE int32 GetAttackPower() const noexcept { return AttackPower; }
     FORCEINLINE int32 GetAttackRange() const noexcept { return AttackRange; }
     FORCEINLINE int32 GetBulletQuantity() const noexcept { return BulletQuantity; }
@@ -31,10 +31,10 @@ private:
     USkeletalMesh* SkeletalMesh;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-    class USoundCue* FireSound;
+    class UParticleSystem* MuzzleParticle;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-    class UParticleSystem* MuzzleParticle;
+    class USoundCue* FireSound;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     int32 AttackPower;
