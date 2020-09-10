@@ -126,6 +126,9 @@ private:
     UPROPERTY()
     class UUserWidget* CrosshairWidget;
     
+    UPROPERTY()
+    class ABRPlayerController* BRPlayerController;
+    
     UPROPERTY(Replicated)
     float ForwardValue;
     
