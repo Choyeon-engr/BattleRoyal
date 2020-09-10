@@ -12,4 +12,6 @@ class BATTLEROYAL_API ABRPlayerController : public APlayerController
 public:
     UFUNCTION(BlueprintImplementableEvent)
     void PrintMessageToClient(const FString & Message);
+    
+    void Dead();
 };

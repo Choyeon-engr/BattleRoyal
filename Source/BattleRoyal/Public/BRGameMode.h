@@ -12,6 +12,8 @@ class BATTLEROYAL_API ABRGameMode : public AGameModeBase
 public:
     ABRGameMode();
     
+    void Dead(class ABRPlayerController* PlayerController);
+    
 protected:
     void BeginPlay() override;
     
@@ -21,7 +23,7 @@ protected:
     
 private:
     void Broadcast(const FString & Message);
-     
+    
 private:
     FTimerHandle MainTimerHandle = { };
     
@@ -34,6 +36,9 @@ private:
     
     UPROPERTY(Transient)
     TArray<class ABRPlayerController*> AliveClients;
+    
+    UPROPERTY(Transient)
+    TArray<class ABRPlayerController*> DeadClients;
     
     int32 MinNumOfPlayer;
     int32 TimeRemaining;

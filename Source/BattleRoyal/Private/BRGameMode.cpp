@@ -38,7 +38,12 @@ void ABRGameMode::BeginPlay()
                 break;
             }
             case EGameProgress::BATTLE:
+            {
+                if (AliveClients.Num() <= 1)
+                    CurGameProgress = EGameProgress::RESULT;
+                
                 break;
+            }
             case EGameProgress::RESULT:
                 break;
         }
@@ -55,7 +60,7 @@ APlayerController* ABRGameMode::Login(UPlayer* NewPlayer, ENetRole InRemoteRole,
         return nullptr;
     }
 
-    AliveClients.Add(CastChecked<ABRPlayerController>(PlayerController));
+    AliveClients.Add(Cast<ABRPlayerController>(PlayerController));
     return PlayerController;
 }
 
@@ -69,6 +74,15 @@ void ABRGameMode::Broadcast(const FString & Message)
 {
     for (int i = 0; i < AliveClients.Num(); ++i)
         AliveClients[i]->PrintMessageToClient(Message);
+    
+    for (int j = 0; j < DeadClients.Num(); ++j)
+        DeadClients[j]->PrintMessageToClient(Message);
+}
+
+void ABRGameMode::Dead(ABRPlayerController* PlayerController)
+{
+    AliveClients.Remove(PlayerController);
+    DeadClients.Add(PlayerController);
 }
 
 #undef LOCTEXT_NAMESPACE
