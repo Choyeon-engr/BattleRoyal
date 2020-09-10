@@ -98,11 +98,11 @@ private:
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class USpringArmComponent* SpringArm;
-
+    
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class UCameraComponent* Camera;
     
-    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     TSubclassOf<UCameraShake> CameraShake;
     
     UPROPERTY(ReplicatedUsing = OnRepBRWeapon)
@@ -121,10 +121,10 @@ private:
     class USoundCue* FireSound;
     
     UPROPERTY()
-    TSubclassOf<class UUserWidget> CrosshairClass;
+    TSubclassOf<class UUserWidget> CrosshairWidgetClass;
     
     UPROPERTY()
-    class UUserWidget* Crosshair;
+    class UUserWidget* CrosshairWidget;
     
     UPROPERTY(Replicated)
     float ForwardValue;

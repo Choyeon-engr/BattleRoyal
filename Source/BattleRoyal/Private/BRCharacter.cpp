@@ -40,9 +40,9 @@ ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDa
     if (FIRE_SOUND.Succeeded())
         FireSound = FIRE_SOUND.Object;
     
-    static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_CLASS(TEXT("/Game/BattleRoyal/Blueprints/HUD/BP_HUD_Crosshair.BP_HUD_Crosshair_C"));
-    if (CROSSHAIR_CLASS.Succeeded())
-        CrosshairClass = CROSSHAIR_CLASS.Class;
+    static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_C(TEXT("/Game/BattleRoyal/Blueprints/UI/BP_UI_Crosshair.BP_UI_Crosshair_C"));
+    if (CROSSHAIR_C.Succeeded())
+        CrosshairWidgetClass = CROSSHAIR_C.Class;
 }
 
 void ABRCharacter::Fire()
@@ -92,7 +92,7 @@ void ABRCharacter::BeginPlay()
     Super::BeginPlay();
     
     if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
-        Crosshair = CreateWidget(GetWorld(), CrosshairClass);
+        CrosshairWidget = CreateWidget(GetWorld(), CrosshairWidgetClass);
 }
 
 void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -240,14 +240,14 @@ void ABRCharacter::Aim()
         bAim = false;
         ServerAim(false);
         Camera->SetFieldOfView(70.0f);
-        Crosshair->RemoveFromParent();
+        CrosshairWidget->RemoveFromParent();
     }
     else
     {
         bAim = true;
         ServerAim(true);
         Camera->SetFieldOfView(35.0f);
-        Crosshair->AddToViewport();
+        CrosshairWidget->AddToViewport();
     }
 }
 
