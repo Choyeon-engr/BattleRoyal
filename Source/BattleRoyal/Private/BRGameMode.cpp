@@ -68,7 +68,7 @@ void ABRGameMode::Logout(AController* Exiting)
 void ABRGameMode::Broadcast(const FString & Message)
 {
     for (int i = 0; i < AliveClients.Num(); ++i)
-        AliveClients[i]->PrintMessageToHUD(Message);
+        AliveClients[i]->PrintMessageToClient(Message);
 }
 
 #undef LOCTEXT_NAMESPACE

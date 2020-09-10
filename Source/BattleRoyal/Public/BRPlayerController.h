@@ -1,6 +1,6 @@
 #pragma once
 
-#include "CoreMinimal.h"
+#include "BattleRoyal.h"
 #include "GameFramework/PlayerController.h"
 #include "BRPlayerController.generated.h"
 
@@ -11,5 +11,5 @@ class BATTLEROYAL_API ABRPlayerController : public APlayerController
     
 public:
     UFUNCTION(BlueprintImplementableEvent)
-    void PrintMessageToHUD(const FString & Message);
+    void PrintMessageToClient(const FString & Message);
 };
