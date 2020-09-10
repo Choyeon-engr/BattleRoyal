@@ -1,5 +1,6 @@
 #include "BRGameMode.h"
 #include "BRPlayerController.h"
+#include "BRGameState.h"
 
 #define LOCTEXT_NAMESPACE "BRNamespace"
 
@@ -39,13 +40,19 @@ void ABRGameMode::BeginPlay()
             }
             case EGameProgress::BATTLE:
             {
-                if (AliveClients.Num() <= 1)
+                ABRGameState* BRGameState = Cast<ABRGameState>(GetWorld()->GetGameState());
+                BRGameState->SetSurvivor(AliveClients.Num());
+                
+                if (BRGameState->GetSurvivor() <= 1)
                     CurGameProgress = EGameProgress::RESULT;
                 
                 break;
             }
             case EGameProgress::RESULT:
+            {
+                Broadcast(FString(TEXT("Result")));
                 break;
+            }
         }
     }), 1.0f, true);
 }
@@ -73,10 +80,10 @@ void ABRGameMode::Logout(AController* Exiting)
 void ABRGameMode::Broadcast(const FString & Message)
 {
     for (int i = 0; i < AliveClients.Num(); ++i)
-        AliveClients[i]->PrintMessageToClient(Message);
+        AliveClients[i]->MessageToClient(Message);
     
     for (int j = 0; j < DeadClients.Num(); ++j)
-        DeadClients[j]->PrintMessageToClient(Message);
+        DeadClients[j]->MessageToClient(Message);
 }
 
 void ABRGameMode::Dead(ABRPlayerController* PlayerController)
