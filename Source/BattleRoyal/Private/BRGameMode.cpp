@@ -47,7 +47,10 @@ void ABRGameMode::BeginPlay()
                 BRGameState->SetSurvivor(AliveClients.Num());
                 
                 if (BRGameState->GetSurvivor() <= 1)
+                {
                     CurGameProgress = EGameProgress::RESULT;
+                    AliveClients[0]->ClientWinnerResult();
+                }
                 
                 break;
             }
@@ -91,6 +94,7 @@ void ABRGameMode::Broadcast(const FString & Message)
 
 void ABRGameMode::Dead(ABRPlayerController* PlayerController)
 {
+    PlayerController->ClientDeathResult(AliveClients.Num());
     AliveClients.Remove(PlayerController);
     DeadClients.Add(PlayerController);
 }

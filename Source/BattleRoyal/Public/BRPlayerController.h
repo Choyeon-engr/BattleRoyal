@@ -13,5 +13,17 @@ public:
     UFUNCTION(BlueprintImplementableEvent)
     void MessageToClient(const FString & Message);
     
+    UFUNCTION(Client, Reliable)
+    void ClientDeathResult(int32 Rank);
+    
+    UFUNCTION(Client, Reliable)
+    void ClientWinnerResult();
+    
+    UFUNCTION(BlueprintImplementableEvent)
+    void DeathResult(int32 Rank);
+    
+    UFUNCTION(BlueprintImplementableEvent)
+    void WinnerResult();
+    
     void Dead();
 };
