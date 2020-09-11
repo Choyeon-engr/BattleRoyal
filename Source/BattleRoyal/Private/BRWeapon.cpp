@@ -60,8 +60,8 @@ void ABRWeapon::Initialize()
         SkeletalMesh->SetSkeletalMesh(nullptr);
         MuzzleParticle = nullptr;
         FireSound = nullptr;
-        AttackPower = 0;
-        AttackRange = 0;
-        BulletQuantity = 0;
+        AttackPower = 0.0f;
+        AttackRange = 0.0f;
+        BulletQuantity = 0.0f;
     }
 }

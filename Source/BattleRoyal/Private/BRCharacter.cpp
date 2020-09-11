@@ -9,7 +9,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), bJump(false), Health(100.0f), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), CurHealth(100.0f), bJump(false), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -53,7 +53,7 @@ void ABRCharacter::Fire()
     {
         FHitResult HitResult;
         FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
-        bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 1000), ECollisionChannel::ECC_GameTraceChannel1, Params);
+        bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 1000.0f), ECollisionChannel::ECC_GameTraceChannel1, Params);
         auto Target = Cast<ABRCharacter>(HitResult.Actor);
         
         BRPlayerController->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
@@ -64,7 +64,7 @@ void ABRCharacter::Fire()
             {
                 UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f, FRotator::ZeroRotator);
                 
-                ServerApplyPointDamage(Target, (bEquipWeapon ? BRWeapon->GetAttackPower() : 10), UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
+                ServerApplyPointDamage(Target, (bEquipWeapon ? BRWeapon->GetAttackPower() : 10.0f), UKismetMathLibrary::GetForwardVector(GetControlRotation()), HitResult, GetController(), this, nullptr);
                 
                 ServerFire(true, HitResult.ImpactPoint + HitResult.ImpactNormal * 10.0f);
             }
@@ -135,10 +135,13 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
         
         BRPlayerController->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
         
-        Health -= FinalDamage;
+        CurHealth -= FinalDamage;
         
-        if (HitResult.BoneName == TEXT("head") || Health <= 0.0f)
+        if (HitResult.BoneName == TEXT("head") || CurHealth <= 0.0f)
+        {
+            CurHealth = 0.0f;
             ServerDead();
+        }
         else
             ServerDamaged();
     }
@@ -158,6 +161,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     DOREPLIFETIME(ABRCharacter, bDead);
     DOREPLIFETIME(ABRCharacter, bDamaged);
     DOREPLIFETIME(ABRCharacter, bEquipWeapon);
+    DOREPLIFETIME(ABRCharacter, CurHealth);
 }
 
 ABRWeapon* ABRCharacter::FindWeapon()

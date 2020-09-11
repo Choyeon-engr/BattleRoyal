@@ -17,9 +17,9 @@ public:
     FORCEINLINE USkeletalMeshComponent* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
     FORCEINLINE UParticleSystem* GetMuzzleParticle() const noexcept { return MuzzleParticle; }
     FORCEINLINE class USoundCue* GetFireSound() const noexcept { return FireSound; }
-    FORCEINLINE int32 GetAttackPower() const noexcept { return AttackPower; }
-    FORCEINLINE int32 GetAttackRange() const noexcept { return AttackRange; }
-    FORCEINLINE int32 GetBulletQuantity() const noexcept { return BulletQuantity; }
+    FORCEINLINE float GetAttackPower() const noexcept { return AttackPower; }
+    FORCEINLINE float GetAttackRange() const noexcept { return AttackRange; }
+    FORCEINLINE float GetBulletQuantity() const noexcept { return BulletQuantity; }
     
 protected:
 #if WITH_EDITOR
@@ -47,9 +47,9 @@ private:
     int32 BRWeaponId;
     
     FName BRWeaponName;
-    int32 AttackPower;
-    int32 AttackRange;
-    int32 BulletQuantity;
+    float AttackPower;
+    float AttackRange;
+    float BulletQuantity;
     
     UPROPERTY()
     class UDataTable* BRWeaponDataTable;
