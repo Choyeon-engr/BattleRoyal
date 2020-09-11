@@ -22,6 +22,9 @@ void ABRGameMode::BeginPlay()
                         CurGameProgress = EGameProgress::BATTLE;
                         Broadcast(FString(TEXT("Start the battle!")));
                         
+                        ABRGameState* BRGameState = Cast<ABRGameState>(GetWorld()->GetGameState());
+                        BRGameState->SetDamaged(true);
+                        
                         FTimerHandle BroadcastTimerHandle = { };
                         GetWorld()->GetTimerManager().SetTimer(BroadcastTimerHandle, FTimerDelegate::CreateLambda([this]() -> void {
                             Broadcast(FString(TEXT("")));

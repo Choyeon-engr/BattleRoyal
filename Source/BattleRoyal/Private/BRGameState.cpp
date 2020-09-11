@@ -5,5 +5,6 @@ void ABRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     
+    DOREPLIFETIME(ABRGameState, bDamaged);
     DOREPLIFETIME(ABRGameState, Survivor);
 }

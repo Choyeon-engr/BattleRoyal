@@ -1,5 +1,6 @@
 #include "BRCharacter.h"
 #include "BRPlayerController.h"
+#include "BRGameState.h"
 #include "BRWeapon.h"
 #include "BRWeaponDataTableRow.h"
 #include "ParticleDefinitions.h"
@@ -125,18 +126,22 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
 {
     float FinalDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
     
-    FHitResult HitResult;
-    FVector ImpulseDirection;
-    DamageEvent.GetBestHitInfo(this, DamageCauser, HitResult, ImpulseDirection);
-    
-    BRPlayerController->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
-    
-    Health -= FinalDamage;
-    
-    if (HitResult.BoneName == TEXT("head") || Health <= 0.0f)
-        ServerDead();
-    else
-        ServerDamaged();
+    ABRGameState* BRGameState = Cast<ABRGameState>(GetWorld()->GetGameState());
+    if (BRGameState->IsDamaged())
+    {
+        FHitResult HitResult;
+        FVector ImpulseDirection;
+        DamageEvent.GetBestHitInfo(this, DamageCauser, HitResult, ImpulseDirection);
+        
+        BRPlayerController->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
+        
+        Health -= FinalDamage;
+        
+        if (HitResult.BoneName == TEXT("head") || Health <= 0.0f)
+            ServerDead();
+        else
+            ServerDamaged();
+    }
     
     return FinalDamage;
 }
