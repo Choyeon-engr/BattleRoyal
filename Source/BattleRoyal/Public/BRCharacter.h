@@ -25,6 +25,9 @@ public:
     FORCEINLINE bool IsDead() const noexcept { return bDead; }
     FORCEINLINE bool IsDamaged() const noexcept { return bDamaged; }
     
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE float GetCurHealth() const noexcept { return CurHealth; }
+    
 protected:
     void BeginPlay() override;
     
@@ -150,12 +153,15 @@ private:
     UPROPERTY(ReplicatedUsing = OnRepEquipWeapon)
     bool bEquipWeapon;
     
+    UPROPERTY(Replicated)
+    float CurHealth;
+    
     bool bJump;
     
     float PreForwardValue;
     float PreRightValue;
     float PreLookUpValue;
-    float Health;
+    
     float DeadTimer;
     
     FTimerHandle DeadTimerHandle = { };
