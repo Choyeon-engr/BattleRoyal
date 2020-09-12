@@ -49,14 +49,14 @@ ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDa
 
 void ABRCharacter::Fire()
 {
-    if (!HasAuthority() && BRPlayerController == GetController())
+    if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
     {
         FHitResult HitResult;
         FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
         bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 1000.0f), ECollisionChannel::ECC_GameTraceChannel1, Params);
         auto Target = Cast<ABRCharacter>(HitResult.Actor);
         
-        BRPlayerController->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
+        GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
         
         if (bResult)
         {
@@ -86,18 +86,13 @@ void ABRCharacter::Dead()
 {
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     GetMesh()->SetSimulatePhysics(true);
-    GetWorld()->GetTimerManager().SetTimer(DeadTimerHandle, FTimerDelegate::CreateLambda([this]() -> void { Destroy(); }), DeadTimer, false);
-    
-    BRPlayerController->Dead();
 }
 
 void ABRCharacter::BeginPlay()
 {
     Super::BeginPlay();
     
-    BRPlayerController = Cast<ABRPlayerController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-    
-    if (!HasAuthority() && BRPlayerController == GetController())
+    if (!HasAuthority() && UGameplayStatics::GetPlayerController(GetWorld(), 0) == GetController())
         CrosshairWidget = CreateWidget(GetWorld(), CrosshairWidgetClass);
 }
 
@@ -133,7 +128,7 @@ float ABRCharacter::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
         FVector ImpulseDirection;
         DamageEvent.GetBestHitInfo(this, DamageCauser, HitResult, ImpulseDirection);
         
-        BRPlayerController->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
+        GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
         
         CurHealth -= FinalDamage;
         
@@ -166,7 +161,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
 
 ABRWeapon* ABRCharacter::FindWeapon()
 {
-    if (!HasAuthority() && BRPlayerController == GetController())
+    if (!HasAuthority() && UGameplayStatics::GetPlayerController(GetWorld(), 0) == GetController())
     {
         TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
         ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
@@ -325,7 +320,7 @@ void ABRCharacter::ServerFire_Implementation(bool IsCharacter, FVector SpawnLoca
 
 void ABRCharacter::MulticastFire_Implementation(bool IsCharacter, FVector SpawnLocation)
 {
-    if (!HasAuthority() && BRPlayerController != GetController())
+    if (!HasAuthority() && UGameplayStatics::GetPlayerController(GetWorld(), 0) != GetController())
     {
         if (IsCharacter)
             UGameplayStatics::SpawnEmitterAtLocation(this, HitCharacterParticle, SpawnLocation, FRotator::ZeroRotator);
@@ -348,6 +343,7 @@ void ABRCharacter::ServerDead_Implementation()
 {
     bDead = true;
     MulticastDead();
+    (Cast<ABRPlayerController>(GetController()))->Dead();
 }
 
 void ABRCharacter::MulticastDead_Implementation()
