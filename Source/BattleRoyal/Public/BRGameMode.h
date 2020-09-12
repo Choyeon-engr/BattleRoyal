@@ -43,4 +43,6 @@ private:
     int32 MinNumOfPlayer;
     int32 ReadyTimeRemaining;
     int32 ResultTimeRemaining;
+    
+    bool bOnBattleField;
 };

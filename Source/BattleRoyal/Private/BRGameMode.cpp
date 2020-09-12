@@ -5,7 +5,7 @@
 
 #define LOCTEXT_NAMESPACE "BRNamespace"
 
-ABRGameMode::ABRGameMode() : CurGameProgress(EGameProgress::READY), MinNumOfPlayer(2), ReadyTimeRemaining(10), ResultTimeRemaining(10) { }
+ABRGameMode::ABRGameMode() : CurGameProgress(EGameProgress::READY), MinNumOfPlayer(2), ReadyTimeRemaining(10), ResultTimeRemaining(10), bOnBattleField(true) { }
 
 void ABRGameMode::BeginPlay()
 {
@@ -57,17 +57,17 @@ void ABRGameMode::BeginPlay()
             }
             case EGameProgress::RESULT:
             {
-                bool bOnBattleField = true;
-                
                 if (!ResultTimeRemaining--)
                 {
                     GetWorld()->GetTimerManager().ClearTimer(MainTimerHandle);
                     
                     for (int i = 0; i < AliveClients.Num(); ++i)
-                        AliveClients[i]->ClientGoToLobby();
+                        if (AliveClients[i])
+                            AliveClients[i]->ClientGoToLobby();
                     
                     for (int j = 0; j < DeadClients.Num(); ++j)
-                        DeadClients[j]->ClientGoToLobby();
+                        if (DeadClients[j])
+                            DeadClients[j]->ClientGoToLobby();
                     
                     UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Lobby")), true, FString(TEXT("listen")));
                     
@@ -104,10 +104,12 @@ void ABRGameMode::Logout(AController* Exiting)
 void ABRGameMode::Broadcast(const FString & Message)
 {
     for (int i = 0; i < AliveClients.Num(); ++i)
-        AliveClients[i]->MessageToClient(Message);
+        if (AliveClients[i])
+            AliveClients[i]->MessageToClient(Message);
     
     for (int j = 0; j < DeadClients.Num(); ++j)
-        DeadClients[j]->MessageToClient(Message);
+        if (DeadClients[j])
+            DeadClients[j]->MessageToClient(Message);
 }
 
 void ABRGameMode::Dead(ABRPlayerController* PlayerController)
