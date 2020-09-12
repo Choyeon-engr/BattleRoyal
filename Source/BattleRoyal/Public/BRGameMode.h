@@ -41,5 +41,6 @@ private:
     TArray<class ABRPlayerController*> DeadClients;
     
     int32 MinNumOfPlayer;
-    int32 TimeRemaining;
+    int32 ReadyTimeRemaining;
+    int32 ResultTimeRemaining;
 };

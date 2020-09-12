@@ -1,10 +1,11 @@
 #include "BRGameMode.h"
 #include "BRPlayerController.h"
 #include "BRGameState.h"
+#include "Kismet/GameplayStatics.h"
 
 #define LOCTEXT_NAMESPACE "BRNamespace"
 
-ABRGameMode::ABRGameMode() : CurGameProgress(EGameProgress::READY), MinNumOfPlayer(2), TimeRemaining(10) { }
+ABRGameMode::ABRGameMode() : CurGameProgress(EGameProgress::READY), MinNumOfPlayer(2), ReadyTimeRemaining(10), ResultTimeRemaining(10) { }
 
 void ABRGameMode::BeginPlay()
 {
@@ -17,7 +18,7 @@ void ABRGameMode::BeginPlay()
             {
                 if (AliveClients.Num() >= MinNumOfPlayer)
                 {
-                    if (!--TimeRemaining)
+                    if (!ReadyTimeRemaining--)
                     {
                         CurGameProgress = EGameProgress::BATTLE;
                         Broadcast(FString(TEXT("Start the battle!")));
@@ -31,11 +32,11 @@ void ABRGameMode::BeginPlay()
                         }), 1.0f, false, 1.0f);
                     }
                     else
-                        Broadcast(FText::Format(LOCTEXT("TimeRemaining", "{0} sec before the battle starts"), TimeRemaining).ToString());
+                        Broadcast(FText::Format(LOCTEXT("ReadyTimeRemaining", "{0} sec before the battle starts"), ReadyTimeRemaining).ToString());
                 }
                 else
                 {
-                    TimeRemaining = 10;
+                    ReadyTimeRemaining = 10;
                     Broadcast(FString(TEXT("Waiting for another player!")));
                 }
                 
@@ -48,15 +49,32 @@ void ABRGameMode::BeginPlay()
                 
                 if (BRGameState->GetSurvivor() <= 1)
                 {
-                    CurGameProgress = EGameProgress::RESULT;
                     AliveClients[0]->ClientWinnerResult();
+                    CurGameProgress = EGameProgress::RESULT;
                 }
                 
                 break;
             }
             case EGameProgress::RESULT:
             {
-                Broadcast(FString(TEXT("Result")));
+                bool bOnBattleField = true;
+                
+                if (!ResultTimeRemaining--)
+                {
+                    GetWorld()->GetTimerManager().ClearTimer(MainTimerHandle);
+                    
+                    for (int i = 0; i < AliveClients.Num(); ++i)
+                        AliveClients[i]->ClientGoToLobby();
+                    
+                    for (int j = 0; j < DeadClients.Num(); ++j)
+                        DeadClients[j]->ClientGoToLobby();
+                    
+                    UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Lobby")), true, FString(TEXT("listen")));
+                    
+                    bOnBattleField = false;
+                }
+                else if (bOnBattleField)
+                    Broadcast(FText::Format(LOCTEXT("ResultTimeRemaining", "{0} sec before moving to the lobby"), ResultTimeRemaining).ToString());
                 break;
             }
         }

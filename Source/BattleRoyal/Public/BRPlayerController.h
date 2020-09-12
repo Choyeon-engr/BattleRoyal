@@ -16,14 +16,20 @@ public:
     UFUNCTION(Client, Reliable)
     void ClientDeathResult(int32 Rank);
     
+    UFUNCTION(BlueprintImplementableEvent)
+    void DeathResult(int32 Rank);
+    
     UFUNCTION(Client, Reliable)
     void ClientWinnerResult();
     
     UFUNCTION(BlueprintImplementableEvent)
-    void DeathResult(int32 Rank);
-    
-    UFUNCTION(BlueprintImplementableEvent)
     void WinnerResult();
     
+    UFUNCTION(Client, Reliable)
+    void ClientGoToLobby();
+    
     void Dead();
+    
+private:
+    FInputModeUIOnly UIMode;
 };
