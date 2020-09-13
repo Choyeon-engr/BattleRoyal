@@ -1,7 +1,11 @@
 BattleRoyal.xcworkspace
 Binaries
 Config
-Content
+Content/Collections
+Content/Developers
+Content/FantasyOrchestral
+Content/Paragon*
+Content/SciFiWeap*
 DerivedDataCache
 Intermediate
 Saved
