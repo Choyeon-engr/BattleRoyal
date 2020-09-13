@@ -27,3 +27,11 @@ void ABRPlayerController::Dead()
     if (BRGameMode)
         BRGameMode->Dead(this);
 }
+
+void ABRPlayerController::BeginPlay()
+{
+    Super::BeginPlay();
+    
+    SetInputMode(GameMode);
+    bShowMouseCursor = false;
+}

@@ -30,6 +30,10 @@ public:
     
     void Dead();
     
+protected:
+    void BeginPlay() override;
+    
 private:
+    FInputModeGameOnly GameMode;
     FInputModeUIOnly UIMode;
 };
