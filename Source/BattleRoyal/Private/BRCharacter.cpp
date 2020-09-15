@@ -1,6 +1,7 @@
 #include "BRCharacter.h"
 #include "BRPlayerController.h"
 #include "BRGameState.h"
+#include "BRGameInstance.h"
 #include "BRWeapon.h"
 #include "BRWeaponDataTableRow.h"
 #include "ParticleDefinitions.h"
@@ -93,7 +94,12 @@ void ABRCharacter::BeginPlay()
     Super::BeginPlay();
     
     if (!HasAuthority() && UGameplayStatics::GetPlayerController(GetWorld(), 0) == GetController())
+    {
+        UBRGameInstance* BRGameInstance = Cast<UBRGameInstance>(GetGameInstance());
+        ServerSetSkin(BRGameInstance->GetSkin());
+        
         CrosshairWidget = CreateWidget(GetWorld(), CrosshairWidgetClass);
+    }
 }
 
 void ABRCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -148,6 +154,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
 {
     Super::GetLifetimeReplicatedProps(OutLifetimeProps);
     
+    DOREPLIFETIME(ABRCharacter, Skin);
     DOREPLIFETIME(ABRCharacter, BRWeapon);
     DOREPLIFETIME(ABRCharacter, ForwardValue);
     DOREPLIFETIME(ABRCharacter, RightValue);
@@ -286,6 +293,16 @@ void ABRCharacter::Interaction()
 {
     if (FindWeapon())
         ServerInteraction(FindWeapon());
+}
+
+void ABRCharacter::ServerSetSkin_Implementation(USkeletalMesh* SkeletalMesh)
+{
+    Skin = SkeletalMesh;
+}
+
+void ABRCharacter::OnRepSkin()
+{
+    GetMesh()->SetSkeletalMesh(Skin);
 }
 
 void ABRCharacter::OnRepBRWeapon()

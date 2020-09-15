@@ -68,6 +68,12 @@ private:
     UFUNCTION(Server, Reliable)
     void ServerApplyPointDamage(ABRCharacter* DamagedActor, float BaseDamage, const FVector & HitFromDirection, const FHitResult & HitInfo, AController* EventInstigator, AActor* DamageCauser, TSubclassOf <class UDamageType> DamageTypeClass);
     
+    UFUNCTION(Server, Reliable)
+    void ServerSetSkin(USkeletalMesh* SkeletalMesh);
+    
+    UFUNCTION()
+    void OnRepSkin();
+    
     UFUNCTION()
     void OnRepBRWeapon();
     
@@ -107,6 +113,9 @@ private:
     
     UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     TSubclassOf<UCameraShake> CameraShake;
+    
+    UPROPERTY(ReplicatedUsing = OnRepSkin)
+    USkeletalMesh* Skin;
     
     UPROPERTY(ReplicatedUsing = OnRepBRWeapon)
     class ABRWeapon* BRWeapon;
