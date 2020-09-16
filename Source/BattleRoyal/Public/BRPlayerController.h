@@ -28,6 +28,9 @@ public:
     UFUNCTION(Client, Reliable)
     void ClientGoToLobby();
     
+    UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
+    void BoardVehicle(AActor* Vehicle);
+    
     void Dead();
     
 protected:

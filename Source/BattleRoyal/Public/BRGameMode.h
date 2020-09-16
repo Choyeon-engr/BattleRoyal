@@ -12,6 +12,12 @@ class BATTLEROYAL_API ABRGameMode : public AGameModeBase
 public:
     ABRGameMode();
     
+    UFUNCTION(BlueprintImplementableEvent)
+    void SpawnVehicle();
+    
+    UFUNCTION(BlueprintImplementableEvent)
+    void BoardVehicle();
+    
     void Dead(class ABRPlayerController* PlayerController);
     
 protected:
@@ -34,7 +40,7 @@ private:
         RESULT
     } CurGameProgress;
     
-    UPROPERTY(Transient)
+    UPROPERTY(Transient, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     TArray<class ABRPlayerController*> AliveClients;
     
     UPROPERTY(Transient)
