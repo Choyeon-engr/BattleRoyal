@@ -10,6 +10,8 @@ class BATTLEROYAL_API ABRPlayerController : public APlayerController
 	GENERATED_BODY()
     
 public:
+    ABRPlayerController();
+    
     UFUNCTION(BlueprintImplementableEvent)
     void MessageToClient(const FString & Message);
     
@@ -37,6 +39,9 @@ protected:
     void BeginPlay() override;
     
 private:
+    UPROPERTY(BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    bool bDescent;
+    
     FInputModeGameOnly GameMode;
     FInputModeUIOnly UIMode;
 };

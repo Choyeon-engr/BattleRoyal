@@ -2,6 +2,8 @@
 #include "BRGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
+ABRPlayerController::ABRPlayerController() : bDescent(false) { }
+
 void ABRPlayerController::ClientDeathResult_Implementation(int32 Rank)
 {
     SetInputMode(UIMode);
