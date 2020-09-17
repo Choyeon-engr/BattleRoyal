@@ -10,7 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), CurHealth(100.0f), bJump(false), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), bDescent(false), bGlid(false), bJump(false), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -164,6 +164,8 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     DOREPLIFETIME(ABRCharacter, bDamaged);
     DOREPLIFETIME(ABRCharacter, bEquipWeapon);
     DOREPLIFETIME(ABRCharacter, CurHealth);
+    DOREPLIFETIME(ABRCharacter, bDescent);
+    DOREPLIFETIME(ABRCharacter, bGlid);
 }
 
 ABRWeapon* ABRCharacter::FindWeapon()
@@ -405,4 +407,14 @@ void ABRCharacter::MulticastInteraction_Implementation()
 {
     BRWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
     BRWeapon->GetSkeletalMesh()->SetSimulatePhysics(true);
+}
+
+void ABRCharacter::OnRepDescent()
+{
+    Descent();
+}
+
+void ABRCharacter::OnRepGlid()
+{
+    Glid();
 }

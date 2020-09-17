@@ -30,26 +30,29 @@ void UBRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
         LowerBodyRotation = ForwardValue * RightValue;
         CurrentLowerBodyRotation = FMath::FInterpTo(CurrentLowerBodyRotation, LowerBodyRotation, 1.0f, 0.1f);
         
-        bCurFalling = BRCharacter->GetCharacterMovement()->IsFalling();
-        if (bCurFalling && !bPreFalling)
+        if (!BRCharacter->IsDescent() && !BRCharacter->IsGlid())
         {
-            bStart = true;
-            bApex = false;
-            bLand = false;
+            bCurFalling = BRCharacter->GetCharacterMovement()->IsFalling();
+            if (bCurFalling && !bPreFalling)
+            {
+                bStart = true;
+                bApex = false;
+                bLand = false;
+            }
+            else if (bCurFalling && bPreFalling)
+            {
+                bStart = false;
+                bApex = true;
+                bLand = false;
+            }
+            else if (!bCurFalling && bPreFalling)
+            {
+                bStart = false;
+                bApex = false;
+                bLand = true;
+            }
+            bPreFalling = bCurFalling;
         }
-        else if (bCurFalling && bPreFalling)
-        {
-            bStart = false;
-            bApex = true;
-            bLand = false;
-        }
-        else if (!bCurFalling && bPreFalling)
-        {
-            bStart = false;
-            bApex = false;
-            bLand = true;
-        }
-        bPreFalling = bCurFalling;
     }
 }
 

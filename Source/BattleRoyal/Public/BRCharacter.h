@@ -21,12 +21,20 @@ public:
     FORCEINLINE float GetLookUpValue() const  noexcept { return LookUpValue; }
     FORCEINLINE float GetControllerPitch() const noexcept { return GetControlRotation().Pitch; }
     
+    UFUNCTION(BlueprintCallable)
+    FORCEINLINE float GetCurHealth() const noexcept { return CurHealth; }
+    
     FORCEINLINE bool IsAim() const noexcept { return bAim; }
     FORCEINLINE bool IsDead() const noexcept { return bDead; }
     FORCEINLINE bool IsDamaged() const noexcept { return bDamaged; }
+    FORCEINLINE bool IsDescent() const noexcept { return bDescent; }
+    FORCEINLINE bool IsGlid() const noexcept { return bGlid; }
     
-    UFUNCTION(BlueprintCallable)
-    FORCEINLINE float GetCurHealth() const noexcept { return CurHealth; }
+    UFUNCTION(BlueprintImplementableEvent)
+    void Descent();
+    
+    UFUNCTION(BlueprintImplementableEvent)
+    void Glid();
     
 protected:
     void BeginPlay() override;
@@ -104,6 +112,12 @@ private:
     UFUNCTION(NetMulticast, Reliable)
     void MulticastInteraction();
     
+    UFUNCTION()
+    void OnRepDescent();
+    
+    UFUNCTION()
+    void OnRepGlid();
+    
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class USpringArmComponent* SpringArm;
@@ -148,6 +162,9 @@ private:
     float LookUpValue;
     
     UPROPERTY(Replicated)
+    float CurHealth;
+    
+    UPROPERTY(Replicated)
     bool bAim;
     
     UPROPERTY(Replicated)
@@ -159,8 +176,11 @@ private:
     UPROPERTY(ReplicatedUsing = OnRepEquipWeapon)
     bool bEquipWeapon;
     
-    UPROPERTY(Replicated)
-    float CurHealth;
+    UPROPERTY(ReplicatedUsing = OnRepDescent, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    bool bDescent;
+    
+    UPROPERTY(ReplicatedUsing = OnRepGlid, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    bool bGlid;
     
     bool bJump;
     
