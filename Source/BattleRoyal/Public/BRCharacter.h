@@ -39,6 +39,12 @@ public:
     UFUNCTION(Server, Reliable, BlueprintCallable)
     void ServerJog();
     
+    UFUNCTION(BlueprintImplementableEvent)
+    void ResetForJog();
+    
+    UFUNCTION(BlueprintCallable)
+    bool CheckAltitude();
+    
 protected:
     void BeginPlay() override;
     

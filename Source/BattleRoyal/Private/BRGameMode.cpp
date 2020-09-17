@@ -11,8 +11,6 @@ void ABRGameMode::BeginPlay()
 {
     Super::BeginPlay();
     
-    SpawnVehicle();
-    
     GetWorld()->GetTimerManager().SetTimer(MainTimerHandle, FTimerDelegate::CreateLambda([this]() -> void {
         switch (CurGameProgress)
         {
@@ -28,7 +26,11 @@ void ABRGameMode::BeginPlay()
                         ABRGameState* BRGameState = Cast<ABRGameState>(GetWorld()->GetGameState());
                         BRGameState->SetDamaged(true);
                         
-                        BoardVehicle();
+                        SpawnVehicle();
+                        
+                        for (int i = 0; i < AliveClients.Num(); ++i)
+                            if (AliveClients[i] && Vehicle)
+                                AliveClients[i]->BoardVehicle(Vehicle);
                         
                         FTimerHandle BroadcastTimerHandle = { };
                         GetWorld()->GetTimerManager().SetTimer(BroadcastTimerHandle, FTimerDelegate::CreateLambda([this]() -> void {

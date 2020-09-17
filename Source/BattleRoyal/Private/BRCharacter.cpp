@@ -91,8 +91,42 @@ void ABRCharacter::Dead()
 
 void ABRCharacter::ServerJog_Implementation()
 {
-    bDescent = false;
     bGlid = false;
+}
+
+bool ABRCharacter::CheckAltitude()
+{
+    if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        if (bDescent || bGlid)
+        {
+            if (bCanAim)
+                ServerReverseSetCanAim();
+            
+            FFindFloorResult FindFloorResult;
+            FHitResult HitResult;
+            
+            GetCharacterMovement()->ComputeFloorDist(GetActorLocation(), 15000.0f, 15000.0f, FindFloorResult, 42.0f, &HitResult);
+            
+            if (FindFloorResult.FloorDist < 6000.0f)
+            {
+                if (FindFloorResult.FloorDist < 100.0f)
+                {
+                    bGlid = false;
+                    ServerJog();
+                    ResetForJog();
+                }
+                else
+                    ServerGlid();
+            }
+            
+            return true;
+        }
+        else if (!bCanAim)
+            ServerReverseSetCanAim();
+    }
+    
+    return false;
 }
 
 void ABRCharacter::BeginPlay()
@@ -177,45 +211,50 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
 
 ABRWeapon* ABRCharacter::FindWeapon()
 {
-    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-    ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
-    
-    TArray<AActor*> ActorsToIgnore;
-    TArray<class AActor*> OutActors;
-    
-    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRWeapon::StaticClass(), ActorsToIgnore, OutActors);
-    
-    if (bResult)
+    if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
     {
-        for (int32 i = 0; i < OutActors.Num(); ++i)
-        {
-            ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[i]);
-            USkeletalMeshComponent* SkeletalMesh = Weapon->GetSkeletalMesh();
-            
-            FHitResult HitResult;
-            FCollisionQueryParams Params(NAME_None, false, this);
-            
-            bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
-            if (bLineTraceResult && SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
-                return Weapon;
-        }
+        TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+        ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
         
-        int32 NearestWeaponIndex = -1;
-        float NearestWeaponDistance = 200.0f;
+        TArray<AActor*> ActorsToIgnore;
+        TArray<class AActor*> OutActors;
         
-        for (int32 j = 0; j < OutActors.Num(); ++j)
+        bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRWeapon::StaticClass(), ActorsToIgnore, OutActors);
+        
+        if (bResult)
         {
-            ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[j]);
-            float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
-            if (NearestWeaponDistance > CurWeaponDistance && Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
+            for (int32 i = 0; i < OutActors.Num(); ++i)
             {
-                NearestWeaponDistance = CurWeaponDistance;
-                NearestWeaponIndex = j;
+                ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[i]);
+                USkeletalMeshComponent* SkeletalMesh = Weapon->GetSkeletalMesh();
+                
+                FHitResult HitResult;
+                FCollisionQueryParams Params(NAME_None, false, this);
+                
+                bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
+                if (bLineTraceResult && SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
+                    return Weapon;
             }
+            
+            int32 NearestWeaponIndex = -1;
+            float NearestWeaponDistance = 200.0f;
+            
+            for (int32 j = 0; j < OutActors.Num(); ++j)
+            {
+                ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[j]);
+                float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
+                if (NearestWeaponDistance > CurWeaponDistance && Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
+                {
+                    NearestWeaponDistance = CurWeaponDistance;
+                    NearestWeaponIndex = j;
+                }
+            }
+            
+            if (NearestWeaponIndex != -1)
+                return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
+            else
+                return nullptr;
         }
-        
-        if (NearestWeaponIndex != -1)
-            return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
         else
             return nullptr;
     }

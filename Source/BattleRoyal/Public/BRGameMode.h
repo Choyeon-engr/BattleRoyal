@@ -15,9 +15,6 @@ public:
     UFUNCTION(BlueprintImplementableEvent)
     void SpawnVehicle();
     
-    UFUNCTION(BlueprintImplementableEvent)
-    void BoardVehicle();
-    
     void Dead(class ABRPlayerController* PlayerController);
     
 protected:
@@ -45,6 +42,9 @@ private:
     
     UPROPERTY(Transient)
     TArray<class ABRPlayerController*> DeadClients;
+    
+    UPROPERTY(Transient, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    AActor* Vehicle;
     
     int32 MinNumOfPlayer;
     int32 ReadyTimeRemaining;
