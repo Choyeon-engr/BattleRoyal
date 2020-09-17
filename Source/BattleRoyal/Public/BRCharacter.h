@@ -33,8 +33,11 @@ public:
     UFUNCTION(BlueprintImplementableEvent)
     void Descent();
     
-    UFUNCTION(BlueprintImplementableEvent)
+    UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
     void Glid();
+    
+    UFUNCTION(Server, Reliable, BlueprintCallable)
+    void ServerJog();
     
 protected:
     void BeginPlay() override;
@@ -88,6 +91,9 @@ private:
     UFUNCTION(Server, Reliable)
     void ServerAim(bool IsAim);
     
+    UFUNCTION(Server, Reliable, BlueprintCallable)
+    void ServerReverseSetCanAim();
+    
     UFUNCTION(Server, Reliable)
     void ServerDead();
     
@@ -117,6 +123,9 @@ private:
     
     UFUNCTION()
     void OnRepGlid();
+    
+    UFUNCTION(Server, Reliable)
+    void ServerGlid();
     
 private:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
@@ -166,6 +175,9 @@ private:
     
     UPROPERTY(Replicated)
     bool bAim;
+    
+    UPROPERTY(Replicated, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    bool bCanAim;
     
     UPROPERTY(Replicated)
     bool bDead;

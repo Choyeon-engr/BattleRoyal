@@ -10,7 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), bAim(false), bDead(false), bDamaged(false), bEquipWeapon(false), bDescent(false), bGlid(false), bJump(false), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), bAim(false), bCanAim(true), bDead(false), bDamaged(false), bEquipWeapon(false), bDescent(false), bGlid(false), bJump(false), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -89,6 +89,12 @@ void ABRCharacter::Dead()
     GetMesh()->SetSimulatePhysics(true);
 }
 
+void ABRCharacter::ServerJog_Implementation()
+{
+    bDescent = false;
+    bGlid = false;
+}
+
 void ABRCharacter::BeginPlay()
 {
     Super::BeginPlay();
@@ -160,6 +166,7 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     DOREPLIFETIME(ABRCharacter, RightValue);
     DOREPLIFETIME(ABRCharacter, LookUpValue);
     DOREPLIFETIME(ABRCharacter, bAim);
+    DOREPLIFETIME(ABRCharacter, bCanAim);
     DOREPLIFETIME(ABRCharacter, bDead);
     DOREPLIFETIME(ABRCharacter, bDamaged);
     DOREPLIFETIME(ABRCharacter, bEquipWeapon);
@@ -170,50 +177,45 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
 
 ABRWeapon* ABRCharacter::FindWeapon()
 {
-    if (!HasAuthority() && UGameplayStatics::GetPlayerController(GetWorld(), 0) == GetController())
+    TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
+    ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
+    
+    TArray<AActor*> ActorsToIgnore;
+    TArray<class AActor*> OutActors;
+    
+    bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRWeapon::StaticClass(), ActorsToIgnore, OutActors);
+    
+    if (bResult)
     {
-        TArray<TEnumAsByte<EObjectTypeQuery>> ObjectTypes;
-        ObjectTypes.Add(EObjectTypeQuery::ObjectTypeQuery2);
-        
-        TArray<AActor*> ActorsToIgnore;
-        TArray<class AActor*> OutActors;
-        
-        bool bResult = UKismetSystemLibrary::SphereOverlapActors(GetWorld(), GetActorLocation(), 200.0f, ObjectTypes, ABRWeapon::StaticClass(), ActorsToIgnore, OutActors);
-        
-        if (bResult)
+        for (int32 i = 0; i < OutActors.Num(); ++i)
         {
-            for (int32 i = 0; i < OutActors.Num(); ++i)
-            {
-                ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[i]);
-                USkeletalMeshComponent* SkeletalMesh = Weapon->GetSkeletalMesh();
-                
-                FHitResult HitResult;
-                FCollisionQueryParams Params(NAME_None, false, this);
-                
-                bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
-                if (bLineTraceResult && SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
-                    return Weapon;
-            }
+            ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[i]);
+            USkeletalMeshComponent* SkeletalMesh = Weapon->GetSkeletalMesh();
             
-            int32 NearestWeaponIndex = -1;
-            float NearestWeaponDistance = 200.0f;
+            FHitResult HitResult;
+            FCollisionQueryParams Params(NAME_None, false, this);
             
-            for (int32 j = 0; j < OutActors.Num(); ++j)
-            {
-                ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[j]);
-                float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
-                if (NearestWeaponDistance > CurWeaponDistance && Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
-                {
-                    NearestWeaponDistance = CurWeaponDistance;
-                    NearestWeaponIndex = j;
-                }
-            }
-            
-            if (NearestWeaponIndex != -1)
-                return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
-            else
-                return nullptr;
+            bool bLineTraceResult = SkeletalMesh->LineTraceComponent(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * 200.0f, Params);
+            if (bLineTraceResult && SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || SkeletalMesh->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
+                return Weapon;
         }
+        
+        int32 NearestWeaponIndex = -1;
+        float NearestWeaponDistance = 200.0f;
+        
+        for (int32 j = 0; j < OutActors.Num(); ++j)
+        {
+            ABRWeapon* Weapon = Cast<ABRWeapon>(OutActors[j]);
+            float CurWeaponDistance = (OutActors[j]->GetActorLocation() - GetActorLocation()).Size();
+            if (NearestWeaponDistance > CurWeaponDistance && Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone"))) || Weapon->GetSkeletalMesh()->IsSimulatingPhysics(FName(TEXT("Root_Bone1"))))
+            {
+                NearestWeaponDistance = CurWeaponDistance;
+                NearestWeaponIndex = j;
+            }
+        }
+        
+        if (NearestWeaponIndex != -1)
+            return Cast<ABRWeapon>(OutActors[NearestWeaponIndex]);
         else
             return nullptr;
     }
@@ -253,19 +255,22 @@ void ABRCharacter::LookUp(const float AxisValue)
 
 void ABRCharacter::Aim()
 {
-    if (bAim)
+    if (bCanAim)
     {
-        bAim = false;
-        ServerAim(false);
-        Camera->SetFieldOfView(70.0f);
-        CrosshairWidget->RemoveFromParent();
-    }
-    else
-    {
-        bAim = true;
-        ServerAim(true);
-        Camera->SetFieldOfView(35.0f);
-        CrosshairWidget->AddToViewport();
+        if (bAim)
+        {
+            bAim = false;
+            ServerAim(false);
+            Camera->SetFieldOfView(70.0f);
+            CrosshairWidget->RemoveFromParent();
+        }
+        else
+        {
+            bAim = true;
+            ServerAim(true);
+            Camera->SetFieldOfView(35.0f);
+            CrosshairWidget->AddToViewport();
+        }
     }
 }
 
@@ -293,6 +298,9 @@ void ABRCharacter::EquipWeapon()
 
 void ABRCharacter::Interaction()
 {
+    if (bDescent)
+        ServerGlid();
+    
     if (FindWeapon())
         ServerInteraction(FindWeapon());
 }
@@ -358,6 +366,11 @@ void ABRCharacter::ServerAim_Implementation(bool IsAim)
     bAim = IsAim;
 }
 
+void ABRCharacter::ServerReverseSetCanAim_Implementation()
+{
+    bCanAim = !bCanAim;
+}
+
 void ABRCharacter::ServerDead_Implementation()
 {
     bDead = true;
@@ -411,10 +424,18 @@ void ABRCharacter::MulticastInteraction_Implementation()
 
 void ABRCharacter::OnRepDescent()
 {
-    Descent();
+    if (bDescent)
+        Descent();
 }
 
 void ABRCharacter::OnRepGlid()
 {
-    Glid();
+    if (bGlid)
+        Glid();
+}
+
+void ABRCharacter::ServerGlid_Implementation()
+{
+    bDescent = false;
+    bGlid = true;
 }
