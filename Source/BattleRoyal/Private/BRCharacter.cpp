@@ -18,12 +18,17 @@ ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), bAim(false)
     
     SpringArm = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArm"));
     Camera = CreateDefaultSubobject<UCameraComponent>(TEXT("Camera"));
+    CloudParticle = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("CloudParticle"));
+    WindSound = CreateDefaultSubobject<UAudioComponent>(TEXT("WindSound"));
     
     SpringArm->SetupAttachment(RootComponent);
     Camera->SetupAttachment(SpringArm);
+    CloudParticle->SetupAttachment(SpringArm);
+    WindSound->SetupAttachment(CloudParticle);
     
     SpringArm->bUsePawnControlRotation = true;
     Camera->SetFieldOfView(70.0f);
+    WindSound->bOverrideAttenuation = true;
     
     GetCharacterMovement()->MaxWalkSpeed = 400.0f;
     
@@ -106,9 +111,9 @@ bool ABRCharacter::CheckAltitude()
             FFindFloorResult FindFloorResult;
             FHitResult HitResult;
             
-            GetCharacterMovement()->ComputeFloorDist(GetActorLocation(), 15000.0f, 15000.0f, FindFloorResult, 42.0f, &HitResult);
+            GetCharacterMovement()->ComputeFloorDist(GetActorLocation(), 20000.0f, 20000.0f, FindFloorResult, 42.0f, &HitResult);
             
-            if (FindFloorResult.FloorDist < 6000.0f)
+            if (FindFloorResult.FloorDist < 20000.0f)
             {
                 if (FindFloorResult.FloorDist < 100.0f)
                 {
@@ -117,7 +122,11 @@ bool ABRCharacter::CheckAltitude()
                     ResetForJog();
                 }
                 else
+                {
+                    CloudParticle->Deactivate();
+                    WindSound->Deactivate();
                     ServerGlid();
+                }
             }
             
             return true;

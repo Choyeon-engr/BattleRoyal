@@ -158,8 +158,14 @@ private:
     UPROPERTY()
     class UParticleSystem* HitCharacterParticle;
     
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    class UParticleSystemComponent* CloudParticle;
+    
     UPROPERTY()
     class USoundCue* FireSound;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
+    class UAudioComponent* WindSound;
     
     UPROPERTY()
     TSubclassOf<class UUserWidget> CrosshairWidgetClass;
