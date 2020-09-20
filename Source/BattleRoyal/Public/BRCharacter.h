@@ -54,6 +54,8 @@ protected:
     
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
     
+    void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
+    
 private:
     UFUNCTION(BlueprintCallable, meta = (AllowPrivateAccess = true))
     ABRWeapon* FindWeapon();

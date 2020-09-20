@@ -120,11 +120,11 @@ bool ABRCharacter::CheckAltitude()
                     bGlid = false;
                     ServerJog();
                     ResetForJog();
+                    WindSound->Deactivate();
                 }
                 else
                 {
                     CloudParticle->Deactivate();
-                    WindSound->Deactivate();
                     ServerGlid();
                 }
             }
@@ -216,6 +216,14 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     DOREPLIFETIME(ABRCharacter, CurHealth);
     DOREPLIFETIME(ABRCharacter, bDescent);
     DOREPLIFETIME(ABRCharacter, bGlid);
+}
+
+void ABRCharacter::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+    Super::EndPlay(EndPlayReason);
+    
+    if (CrosshairWidget)
+        CrosshairWidget->RemoveFromViewport();
 }
 
 ABRWeapon* ABRCharacter::FindWeapon()
