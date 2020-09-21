@@ -27,8 +27,14 @@ protected:
 #endif
     void BeginPlay() override;
     
+    void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
+    
 private:
+    void LoadWeapon();
     void Initialize();
+    
+    UFUNCTION()
+    void OnRepBRWeaponId();
     
 private:
     UPROPERTY(VisibleAnywhere, meta = (AllowPrivateAccess = true))
@@ -43,7 +49,7 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     bool bRandom;
     
-    UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
+    UPROPERTY(ReplicatedUsing = OnRepBRWeaponId, EditAnywhere, meta = (AllowPrivateAccess = true))
     int32 BRWeaponId;
     
     FName BRWeaponName;

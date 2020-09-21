@@ -2,6 +2,7 @@
 #include "BRWeaponDataTableRow.h"
 #include "Engine/DataTable.h"
 #include "Sound/SoundCue.h"
+#include "Net/UnrealNetwork.h"
 
 ABRWeapon::ABRWeapon() : bRandom(false)
 {
@@ -13,6 +14,8 @@ ABRWeapon::ABRWeapon() : bRandom(false)
     static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/BattleRoyal/DataTable/DT_BRWeapon"));
     if (DataTable.Succeeded())
         BRWeaponDataTable = DataTable.Object;
+    
+    bReplicates = true;
 }
 
 #if WITH_EDITOR
@@ -34,14 +37,18 @@ void ABRWeapon::BeginPlay()
 {
     Super::BeginPlay();
     
-    Initialize();
+    if (HasAuthority())
+        Initialize();
 }
 
-void ABRWeapon::Initialize()
+void ABRWeapon::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
 {
-    if (bRandom)
-        BRWeaponId = FMath::RandRange(1, 10);
-    
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    DOREPLIFETIME(ABRWeapon, BRWeaponId);
+}
+
+void ABRWeapon::LoadWeapon()
+{
     if (BRWeaponId)
     {
         FBRWeaponDataTableRow* BRWeaponDataTableRow = BRWeaponDataTable->FindRow<FBRWeaponDataTableRow>(FName(*(FString::FormatAsNumber(BRWeaponId))), FString(""), true);
@@ -64,4 +71,17 @@ void ABRWeapon::Initialize()
         AttackRange = 0.0f;
         BulletQuantity = 0.0f;
     }
+}
+
+void ABRWeapon::Initialize()
+{
+    if (bRandom)
+        BRWeaponId = FMath::RandRange(1, 10);
+    
+    LoadWeapon();
+}
+
+void ABRWeapon::OnRepBRWeaponId()
+{
+    LoadWeapon();
 }
