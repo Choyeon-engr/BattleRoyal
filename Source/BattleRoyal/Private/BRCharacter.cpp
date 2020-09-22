@@ -97,6 +97,12 @@ void ABRCharacter::Dead()
 void ABRCharacter::ServerJog_Implementation()
 {
     bGlid = false;
+    MulticastJog();
+}
+
+void  ABRCharacter::MulticastJog_Implementation()
+{
+    ResetForJog();
 }
 
 bool ABRCharacter::CheckAltitude()
@@ -111,15 +117,14 @@ bool ABRCharacter::CheckAltitude()
             FFindFloorResult FindFloorResult;
             FHitResult HitResult;
             
-            GetCharacterMovement()->ComputeFloorDist(GetActorLocation(), 20000.0f, 20000.0f, FindFloorResult, 42.0f, &HitResult);
+            GetCharacterMovement()->ComputeFloorDist(GetActorLocation(), 10000.0f, 10000.0f, FindFloorResult, 42.0f, &HitResult);
             
-            if (FindFloorResult.FloorDist < 20000.0f)
+            if (FindFloorResult.FloorDist < 10000.0f)
             {
                 if (FindFloorResult.FloorDist < 100.0f)
                 {
                     bGlid = false;
                     ServerJog();
-                    ResetForJog();
                     WindSound->Deactivate();
                 }
                 else

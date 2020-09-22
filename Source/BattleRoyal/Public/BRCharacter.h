@@ -36,8 +36,11 @@ public:
     UFUNCTION(BlueprintCallable, BlueprintImplementableEvent)
     void Glid();
     
-    UFUNCTION(Server, Reliable, BlueprintCallable)
+    UFUNCTION(Server, Reliable)
     void ServerJog();
+    
+    UFUNCTION(NetMulticast, Reliable)
+    void MulticastJog();
     
     UFUNCTION(BlueprintImplementableEvent)
     void ResetForJog();
