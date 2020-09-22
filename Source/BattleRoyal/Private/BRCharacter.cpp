@@ -125,13 +125,9 @@ bool ABRCharacter::CheckAltitude()
                 {
                     bGlid = false;
                     ServerJog();
-                    WindSound->Deactivate();
                 }
                 else
-                {
-                    CloudParticle->Deactivate();
                     ServerGlid();
-                }
             }
             
             return true;
