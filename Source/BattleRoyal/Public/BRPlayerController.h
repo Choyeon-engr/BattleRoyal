@@ -10,7 +10,7 @@ class BATTLEROYAL_API ABRPlayerController : public APlayerController
 	GENERATED_BODY()
     
 public:
-    ABRPlayerController();
+    ABRPlayerController() : bDescent(false) { }
     
     UFUNCTION(BlueprintImplementableEvent)
     void MessageToClient(const FString & Message);
@@ -32,6 +32,12 @@ public:
     
     UFUNCTION(BlueprintImplementableEvent)
     void BoardVehicle(AActor* Vehicle);
+    
+    UFUNCTION(Client, Unreliable)
+    void ClientPrintBloodScreen();
+    
+    UFUNCTION(BlueprintImplementableEvent)
+    void PrintBloodScreen();
     
     void Dead();
     

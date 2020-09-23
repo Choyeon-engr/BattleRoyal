@@ -1,6 +1,7 @@
 #include "BRGameMode.h"
 #include "BRPlayerController.h"
 #include "BRGameState.h"
+#include "BRCharacter.h"
 #include "Kismet/GameplayStatics.h"
 
 #define LOCTEXT_NAMESPACE "BRNamespace"
@@ -50,13 +51,31 @@ void ABRGameMode::BeginPlay()
             case EGameProgress::BATTLE:
             {
                 ABRGameState* BRGameState = Cast<ABRGameState>(GetWorld()->GetGameState());
-                BRGameState->UpdateCircle();
                 BRGameState->SetSurvivor(AliveClients.Num());
+                BRGameState->UpdateCircle();
                 
                 if (BRGameState->GetSurvivor() <= 1)
                 {
                     AliveClients[0]->ClientWinnerResult();
                     CurGameProgress = EGameProgress::RESULT;
+                }
+                else
+                {
+                    if (BRGameState->IsVisibleCurCircle())
+                    {
+                        for (int i = 0; i < AliveClients.Num(); ++i)
+                        {
+                            ABRCharacter* BRCharacter = Cast<ABRCharacter>(AliveClients[i]->GetPawn());
+                            
+                            if (BRCharacter)
+                            {
+                                float Distance = (FVector(BRCharacter->GetActorLocation().X, BRCharacter->GetActorLocation().Y, 0.0f) - FVector(BRGameState->GetCurCircleLoc().X, BRGameState->GetCurCircleLoc().Y, 0.0f)).Size();
+                                
+                                if (Distance >= BRGameState->GetCurCircleRadius())
+                                    BRCharacter->MagneticDamage(5.0f);
+                            }
+                        }
+                    }
                 }
                 
                 break;

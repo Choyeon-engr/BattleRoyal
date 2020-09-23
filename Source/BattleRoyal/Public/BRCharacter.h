@@ -14,6 +14,7 @@ public:
     
     void Fire();
     void Dead();
+    void MagneticDamage(float DamageAmount);
     FORCEINLINE void ResetDamaged() { ServerResetDamaged(); }
     
     FORCEINLINE float GetForwardValue() const noexcept { return ForwardValue; }

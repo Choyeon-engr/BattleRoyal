@@ -2,8 +2,6 @@
 #include "BRGameMode.h"
 #include "Kismet/GameplayStatics.h"
 
-ABRPlayerController::ABRPlayerController() : bDescent(false) { }
-
 void ABRPlayerController::ClientDeathResult_Implementation(int32 Rank)
 {
     SetInputMode(UIMode);
@@ -21,6 +19,11 @@ void ABRPlayerController::ClientWinnerResult_Implementation()
 void ABRPlayerController::ClientGoToLobby_Implementation()
 {
     UGameplayStatics::OpenLevel(GetWorld(), FName(TEXT("Lobby")), true);
+}
+
+void ABRPlayerController::ClientPrintBloodScreen_Implementation()
+{
+    PrintBloodScreen();
 }
 
 void ABRPlayerController::Dead()

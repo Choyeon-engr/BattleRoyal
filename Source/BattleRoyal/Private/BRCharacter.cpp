@@ -94,6 +94,21 @@ void ABRCharacter::Dead()
     GetMesh()->SetSimulatePhysics(true);
 }
 
+void ABRCharacter::MagneticDamage(float DamageAmount)
+{
+    CurHealth -= DamageAmount;
+    if (CurHealth <= 0)
+    {
+        CurHealth = 0.0f;
+        ServerDead();
+    }
+    else
+    {
+        ABRPlayerController* BRPlayerController = Cast<ABRPlayerController>(GetController());
+        BRPlayerController->ClientPrintBloodScreen();
+    }
+}
+
 void ABRCharacter::ServerJog_Implementation()
 {
     bGlid = false;
