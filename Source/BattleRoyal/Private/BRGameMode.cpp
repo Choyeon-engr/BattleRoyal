@@ -5,8 +5,6 @@
 
 #define LOCTEXT_NAMESPACE "BRNamespace"
 
-ABRGameMode::ABRGameMode() : CurGameProgress(EGameProgress::READY), MinNumOfPlayer(2), ReadyTimeRemaining(10), ResultTimeRemaining(10), bOnBattleField(true) { }
-
 void ABRGameMode::BeginPlay()
 {
     Super::BeginPlay();
@@ -25,6 +23,7 @@ void ABRGameMode::BeginPlay()
                         
                         ABRGameState* BRGameState = Cast<ABRGameState>(GetWorld()->GetGameState());
                         BRGameState->SetDamaged(true);
+                        BRGameState->UpdateCircle();
                         
                         SpawnVehicle();
                         
@@ -51,6 +50,7 @@ void ABRGameMode::BeginPlay()
             case EGameProgress::BATTLE:
             {
                 ABRGameState* BRGameState = Cast<ABRGameState>(GetWorld()->GetGameState());
+                BRGameState->UpdateCircle();
                 BRGameState->SetSurvivor(AliveClients.Num());
                 
                 if (BRGameState->GetSurvivor() <= 1)
