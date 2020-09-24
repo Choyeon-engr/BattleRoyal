@@ -59,7 +59,7 @@ void ABRCharacter::Fire()
     {
         FHitResult HitResult;
         FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
-        bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 1000.0f), ECollisionChannel::ECC_GameTraceChannel1, Params);
+        bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 800.0f), ECollisionChannel::ECC_GameTraceChannel1, Params);
         auto Target = Cast<ABRCharacter>(HitResult.Actor);
         
         GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
@@ -445,6 +445,9 @@ void ABRCharacter::ServerReverseSetCanAim_Implementation()
 
 void ABRCharacter::ServerDead_Implementation()
 {
+    if (BRWeapon)
+        MulticastInteraction();
+    
     bDead = true;
     MulticastDead();
     (Cast<ABRPlayerController>(GetController()))->Dead();
