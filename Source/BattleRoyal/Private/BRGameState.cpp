@@ -1,9 +1,10 @@
 #include "BRGameState.h"
+#include "BRGameMode.h"
 #include "BRMagneticFieldDataTableRow.h"
 #include "Engine/DataTable.h"
 #include "Net/UnrealNetwork.h"
 
-ABRGameState::ABRGameState() : bDamaged(false), bVisibleCurCircle(false), bVisibleNxtCircle(false), CurMagneticFieldPhase(1)
+ABRGameState::ABRGameState() : bDamaged(false), bVisibleCurCircle(false), bVisibleNxtCircle(false), CurMagneticFieldPhase(1), bMovingBroadcasted(false), bShrinkingBroadcasted(false)
 {
     static ConstructorHelpers::FObjectFinder<UDataTable> DataTable(TEXT("/Game/BattleRoyal/DataTable/DT_BRMagneticField"));
     if (DataTable.Succeeded())
@@ -29,11 +30,46 @@ void ABRGameState::UpdateCircle()
             }
             else
             {
+                if (!bShrinkingBroadcasted)
+                {
+                    bShrinkingBroadcasted = true;
+                    Broadcast(FString(TEXT("The magnetic field is narrowing!")));
+                }
+                
                 CurCircleLoc += DeltaCircleLoc;
                 CurCircleRadius += DeltaCircleRadius;
             }
         }
+        else
+        {
+            if (!bMovingBroadcasted)
+            {
+                bMovingBroadcasted = true;
+                Broadcast(FString(TEXT("A new magnetic field has been created!")));
+            }
+        }
     }
+}
+
+void ABRGameState::BeginPlay()
+{
+    Super::BeginPlay();
+    
+    SetMagneticFieldPhase(CurMagneticFieldPhase, NxtCircleLoc, NxtCircleRadius);
+}
+
+void ABRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
+{
+    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+    
+    DOREPLIFETIME(ABRGameState, bDamaged);
+    DOREPLIFETIME(ABRGameState, Survivor);
+    DOREPLIFETIME(ABRGameState, CurCircleLoc);
+    DOREPLIFETIME(ABRGameState, NxtCircleLoc);
+    DOREPLIFETIME(ABRGameState, CurCircleRadius);
+    DOREPLIFETIME(ABRGameState, NxtCircleRadius);
+    DOREPLIFETIME(ABRGameState, bVisibleCurCircle);
+    DOREPLIFETIME(ABRGameState, bVisibleNxtCircle);
 }
 
 void ABRGameState::SetMagneticFieldPhase(int32 Phase, FVector PrvCircleLoc, float PrvCircleRadius)
@@ -64,26 +100,23 @@ void ABRGameState::SetMagneticFieldPhase(int32 Phase, FVector PrvCircleLoc, floa
         
         DeltaCircleLoc = (NxtCircleLoc - CurCircleLoc) / ShrinkingTime;
         DeltaCircleRadius = (NxtCircleRadius - CurCircleRadius) / (float)ShrinkingTime;
+        
+        bMovingBroadcasted = false;
+        bShrinkingBroadcasted = false;
     }
 }
 
-void ABRGameState::BeginPlay()
+void ABRGameState::Broadcast(const FString & Message)
 {
-    Super::BeginPlay();
-    
-    SetMagneticFieldPhase(CurMagneticFieldPhase, NxtCircleLoc, NxtCircleRadius);
-}
-
-void ABRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
-{
-    Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-    
-    DOREPLIFETIME(ABRGameState, bDamaged);
-    DOREPLIFETIME(ABRGameState, Survivor);
-    DOREPLIFETIME(ABRGameState, CurCircleLoc);
-    DOREPLIFETIME(ABRGameState, NxtCircleLoc);
-    DOREPLIFETIME(ABRGameState, CurCircleRadius);
-    DOREPLIFETIME(ABRGameState, NxtCircleRadius);
-    DOREPLIFETIME(ABRGameState, bVisibleCurCircle);
-    DOREPLIFETIME(ABRGameState, bVisibleNxtCircle);
+    ABRGameMode* BRGameMode = Cast<ABRGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+    if (BRGameMode)
+    {
+        BRGameMode->Broadcast(Message);
+        
+        FTimerHandle BroadcastTimerHandle = { };
+        GetWorld()->GetTimerManager().SetTimer(BroadcastTimerHandle, FTimerDelegate::CreateLambda([this]() -> void {
+            ABRGameMode* BRGameMode = Cast<ABRGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+            BRGameMode->Broadcast(FString(TEXT("")));
+        }), 1.0f, false, 5.0f);
+    }
 }

@@ -22,12 +22,16 @@ public:
     FORCEINLINE float GetCurCircleRadius() const noexcept { return CurCircleRadius; }
     
     void UpdateCircle();
-    void SetMagneticFieldPhase(int32 Phase, FVector PrvCircleLoc, float PrvCircleRadius);
     
 protected:
     void BeginPlay() override;
     
     void GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const override;
+    
+private:
+    void SetMagneticFieldPhase(int32 Phase, FVector PrvCircleLoc, float PrvCircleRadius);
+    
+    void Broadcast(const FString & Message);
 	
 private:
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
@@ -61,6 +65,9 @@ private:
     
     FVector DeltaCircleLoc;
     float DeltaCircleRadius;
+    
+    bool bMovingBroadcasted;
+    bool bShrinkingBroadcasted;
     
     UPROPERTY()
     class UDataTable* BRMagneticFieldDataTable;
