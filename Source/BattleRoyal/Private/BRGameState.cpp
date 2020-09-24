@@ -25,33 +25,44 @@ void ABRGameState::UpdateCircle()
             if (ShrinkingTime-- <= 0)
             {
                 bVisibleNxtCircle = false;
-                SetMagneticFieldPhase(++CurMagneticFieldPhase);
+                SetMagneticFieldPhase(++CurMagneticFieldPhase, NxtCircleLoc, NxtCircleRadius);
             }
             else
             {
-                CurCircleLocation += DeltaCircleLocation;
+                CurCircleLoc += DeltaCircleLoc;
                 CurCircleRadius += DeltaCircleRadius;
             }
         }
     }
 }
 
-void ABRGameState::SetMagneticFieldPhase(int32 Phase)
+void ABRGameState::SetMagneticFieldPhase(int32 Phase, FVector PrvCircleLoc, float PrvCircleRadius)
 {
     FBRMagneticFieldDataTableRow* BRMagneticFieldDataTableRow = BRMagneticFieldDataTable->FindRow<FBRMagneticFieldDataTableRow>(FName(*(FString::FormatAsNumber(Phase))), FString(""), true);
     
     if (BRMagneticFieldDataTableRow)
     {
         CurMagneticFieldPhase = BRMagneticFieldDataTableRow->GetPhase();
-        CurCircleLocation = BRMagneticFieldDataTableRow->GetCurCircleLoc();
-        NxtCircleLocation = BRMagneticFieldDataTableRow->GetNxtCircleLoc();
+        CurCircleLoc = BRMagneticFieldDataTableRow->GetCurCircleLoc();
+        NxtCircleLoc = BRMagneticFieldDataTableRow->GetNxtCircleLoc();
         CurCircleRadius = BRMagneticFieldDataTableRow->GetCurCircleRadius();
         NxtCircleRadius = BRMagneticFieldDataTableRow->GetNxtCircleRadius();
         RemainingTime = BRMagneticFieldDataTableRow->GetRemainingTime();
         MovingTime = BRMagneticFieldDataTableRow->GetMovingTime();
         ShrinkingTime = BRMagneticFieldDataTableRow->GetShrinkingTime();
         
-        DeltaCircleLocation = (NxtCircleLocation - CurCircleLocation) / ShrinkingTime;
+        if (BRMagneticFieldDataTableRow->IsRandomLoc())
+        {
+            CurCircleLoc = PrvCircleLoc;
+            CurCircleRadius = PrvCircleRadius;
+            
+            FVector RandomVector = FMath::VRand();
+            float RandomDistance = FMath::RandRange(BRMagneticFieldDataTableRow->GetNxtMinRandDist(), BRMagneticFieldDataTableRow->GetNxtMaxRandDist());
+            
+            NxtCircleLoc += RandomVector * RandomDistance;
+        }
+        
+        DeltaCircleLoc = (NxtCircleLoc - CurCircleLoc) / ShrinkingTime;
         DeltaCircleRadius = (NxtCircleRadius - CurCircleRadius) / (float)ShrinkingTime;
     }
 }
@@ -60,7 +71,7 @@ void ABRGameState::BeginPlay()
 {
     Super::BeginPlay();
     
-    SetMagneticFieldPhase(CurMagneticFieldPhase);
+    SetMagneticFieldPhase(CurMagneticFieldPhase, NxtCircleLoc, NxtCircleRadius);
 }
 
 void ABRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLifetimeProps) const
@@ -69,8 +80,8 @@ void ABRGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     
     DOREPLIFETIME(ABRGameState, bDamaged);
     DOREPLIFETIME(ABRGameState, Survivor);
-    DOREPLIFETIME(ABRGameState, CurCircleLocation);
-    DOREPLIFETIME(ABRGameState, NxtCircleLocation);
+    DOREPLIFETIME(ABRGameState, CurCircleLoc);
+    DOREPLIFETIME(ABRGameState, NxtCircleLoc);
     DOREPLIFETIME(ABRGameState, CurCircleRadius);
     DOREPLIFETIME(ABRGameState, NxtCircleRadius);
     DOREPLIFETIME(ABRGameState, bVisibleCurCircle);

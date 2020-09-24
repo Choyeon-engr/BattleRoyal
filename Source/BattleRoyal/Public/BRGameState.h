@@ -18,11 +18,11 @@ public:
     FORCEINLINE int32 GetSurvivor() const noexcept { return Survivor; }
     FORCEINLINE bool IsDamaged() const noexcept { return bDamaged; }
     FORCEINLINE bool IsVisibleCurCircle() const noexcept { return bVisibleCurCircle; }
-    FORCEINLINE FVector GetCurCircleLoc() const noexcept { return CurCircleLocation; }
+    FORCEINLINE FVector GetCurCircleLoc() const noexcept { return CurCircleLoc; }
     FORCEINLINE float GetCurCircleRadius() const noexcept { return CurCircleRadius; }
     
     void UpdateCircle();
-    void SetMagneticFieldPhase(int32 Phase);
+    void SetMagneticFieldPhase(int32 Phase, FVector PrvCircleLoc, float PrvCircleRadius);
     
 protected:
     void BeginPlay() override;
@@ -37,10 +37,10 @@ private:
     int32 Survivor;
     
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-    FVector CurCircleLocation;
+    FVector CurCircleLoc;
     
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
-    FVector NxtCircleLocation;
+    FVector NxtCircleLoc;
     
     UPROPERTY(Replicated, VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     float CurCircleRadius;
@@ -59,7 +59,7 @@ private:
     int32 ShrinkingTime;
     int32 CurMagneticFieldPhase;
     
-    FVector DeltaCircleLocation;
+    FVector DeltaCircleLoc;
     float DeltaCircleRadius;
     
     UPROPERTY()
