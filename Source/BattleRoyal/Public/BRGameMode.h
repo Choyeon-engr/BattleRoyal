@@ -17,15 +17,14 @@ public:
     
     void Dead(class ABRPlayerController* PlayerController);
     
+    void Broadcast(const FString & Message);
+    
 protected:
     void BeginPlay() override;
     
     APlayerController* Login(UPlayer* NewPlayer, ENetRole InRemoteRole, const FString & Portal, const FString & Options, const FUniqueNetIdRepl & UniqueId, FString & ErrorMessage) override;
     
     void Logout(AController* Exiting) override;
-    
-private:
-    void Broadcast(const FString & Message);
     
 private:
     FTimerHandle MainTimerHandle = { };

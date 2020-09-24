@@ -6,6 +6,24 @@
 
 #define LOCTEXT_NAMESPACE "BRNamespace"
 
+void ABRGameMode::Dead(ABRPlayerController* PlayerController)
+{
+    PlayerController->ClientDeathResult(AliveClients.Num());
+    AliveClients.Remove(PlayerController);
+    DeadClients.Add(PlayerController);
+}
+
+void ABRGameMode::Broadcast(const FString & Message)
+{
+    for (int i = 0; i < AliveClients.Num(); ++i)
+        if (AliveClients[i])
+            AliveClients[i]->MessageToClient(Message);
+    
+    for (int j = 0; j < DeadClients.Num(); ++j)
+        if (DeadClients[j])
+            DeadClients[j]->MessageToClient(Message);
+}
+
 void ABRGameMode::BeginPlay()
 {
     Super::BeginPlay();
@@ -124,24 +142,6 @@ void ABRGameMode::Logout(AController* Exiting)
 {
     Super::Logout(Exiting);
     AliveClients.Remove(Cast<ABRPlayerController>(Exiting));
-}
-
-void ABRGameMode::Broadcast(const FString & Message)
-{
-    for (int i = 0; i < AliveClients.Num(); ++i)
-        if (AliveClients[i])
-            AliveClients[i]->MessageToClient(Message);
-    
-    for (int j = 0; j < DeadClients.Num(); ++j)
-        if (DeadClients[j])
-            DeadClients[j]->MessageToClient(Message);
-}
-
-void ABRGameMode::Dead(ABRPlayerController* PlayerController)
-{
-    PlayerController->ClientDeathResult(AliveClients.Num());
-    AliveClients.Remove(PlayerController);
-    DeadClients.Add(PlayerController);
 }
 
 #undef LOCTEXT_NAMESPACE
