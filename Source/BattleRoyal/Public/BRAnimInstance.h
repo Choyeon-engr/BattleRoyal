@@ -10,7 +10,7 @@ class BATTLEROYAL_API UBRAnimInstance : public UAnimInstance
     GENERATED_BODY()
     
 public:
-    UBRAnimInstance();
+    UBRAnimInstance() : bPreFalling(false) { }
     
 protected:
     virtual void NativeUpdateAnimation(float DeltaSeconds) override;

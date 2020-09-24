@@ -1,8 +1,6 @@
 #include "BRAnimInstance.h"
 #include "BRCharacter.h"
 
-UBRAnimInstance::UBRAnimInstance() : bPreFalling(false) { }
-
 void UBRAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
     Super::NativeUpdateAnimation(DeltaSeconds);

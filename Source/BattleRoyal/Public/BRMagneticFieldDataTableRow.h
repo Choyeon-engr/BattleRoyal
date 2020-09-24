@@ -42,5 +42,5 @@ private:
     int32 MovingTime;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
-    int32  ShrinkingTime;
+    int32 ShrinkingTime;
 };

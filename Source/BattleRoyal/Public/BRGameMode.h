@@ -10,7 +10,7 @@ class BATTLEROYAL_API ABRGameMode : public AGameModeBase
     GENERATED_BODY()
     
 public:
-    ABRGameMode();
+    ABRGameMode() : CurGameProgress(EGameProgress::READY), MinNumOfPlayer(2), ReadyTimeRemaining(10), ResultTimeRemaining(10), bOnBattleField(true) { }
     
     UFUNCTION(BlueprintImplementableEvent)
     void SpawnVehicle();
