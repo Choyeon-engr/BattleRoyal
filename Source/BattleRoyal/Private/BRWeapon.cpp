@@ -24,12 +24,7 @@ void ABRWeapon::PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEve
     Super::PostEditChangeProperty(PropertyChangedEvent);
     
     static const FName & bRandomName = GET_MEMBER_NAME_CHECKED(ABRWeapon, bRandom);
-    if (PropertyChangedEvent.Property && PropertyChangedEvent.GetPropertyName() == bRandomName)
-    {
-        static const FName & BRWeaponIdName = GET_MEMBER_NAME_CHECKED(ABRWeapon, BRWeaponId);
-        if (PropertyChangedEvent.Property && PropertyChangedEvent.GetPropertyName() == BRWeaponIdName)
-            Initialize();
-    }
+    static const FName & BRWeaponIdName = GET_MEMBER_NAME_CHECKED(ABRWeapon, WeaponId);
 }
 #endif
 
@@ -79,8 +74,8 @@ void ABRWeapon::Initialize()
 {
     if (bRandom)
         BRWeaponId = FMath::RandRange(1, 10);
-    
-    LoadWeapon();
+    else
+        BRWeaponId = WeaponId;
 }
 
 void ABRWeapon::OnRepBRWeaponId()

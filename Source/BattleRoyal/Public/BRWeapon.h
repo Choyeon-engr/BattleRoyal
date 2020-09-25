@@ -53,7 +53,10 @@ private:
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     bool bRandom;
     
-    UPROPERTY(ReplicatedUsing = OnRepBRWeaponId, EditAnywhere, meta = (AllowPrivateAccess = true))
+    UPROPERTY(EditAnywhere, meta = (AllowPrivateAccess = true))
+    int32 WeaponId;
+    
+    UPROPERTY(ReplicatedUsing = OnRepBRWeaponId)
     int32 BRWeaponId;
     
     FName BRWeaponName;
