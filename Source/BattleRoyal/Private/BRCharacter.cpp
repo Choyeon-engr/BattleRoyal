@@ -10,7 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), bAim(false), bCanAim(true), bDead(false), bDamaged(false), bEquipWeapon(false), bDescent(false), bGlid(false), bJump(false), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), BulletQuantity(5), bAim(false), bCanAim(true), bDead(false), bDamaged(false), bEquipWeapon(false), bDescent(false), bGlid(false), bJump(false), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -48,6 +48,10 @@ ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), bAim(false)
     if (FIRE_SOUND.Succeeded())
         FireSound = FIRE_SOUND.Object;
     
+    static ConstructorHelpers::FObjectFinder<USoundCue> RELOAD_SOUND(TEXT("/Game/SciFiWeapDark/Sound/Rifle/Rifle_Reload_Cue"));
+    if (RELOAD_SOUND.Succeeded())
+        ReloadSound = RELOAD_SOUND.Object;
+    
     static ConstructorHelpers::FClassFinder<UUserWidget> CROSSHAIR_C(TEXT("/Game/BattleRoyal/Blueprints/UI/BP_UI_Crosshair.BP_UI_Crosshair_C"));
     if (CROSSHAIR_C.Succeeded())
         CrosshairWidgetClass = CROSSHAIR_C.Class;
@@ -61,6 +65,8 @@ void ABRCharacter::Fire()
         FCollisionQueryParams Params(FName(TEXT("Bullet")), true, this);
         bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 800.0f), ECollisionChannel::ECC_GameTraceChannel1, Params);
         auto Target = Cast<ABRCharacter>(HitResult.Actor);
+        
+        --BulletQuantity;
         
         GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
         
@@ -92,6 +98,16 @@ void ABRCharacter::Dead()
 {
     GetMesh()->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
     GetMesh()->SetSimulatePhysics(true);
+}
+
+void ABRCharacter::Reload()
+{
+    BulletQuantity = (bEquipWeapon ? BRWeapon->GetBulletQuantity() : 5);
+}
+
+void ABRCharacter::PlayReloadSound()
+{
+    UGameplayStatics::SpawnSoundAtLocation(this, bEquipWeapon ? BRWeapon->GetReloadSound() : ReloadSound, GetActorLocation(), GetActorRotation(), 1.0f, 1.0f, 0.0f, nullptr, nullptr, true);
 }
 
 void ABRCharacter::MagneticDamage(float DamageAmount)
@@ -224,12 +240,12 @@ void ABRCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty> & OutLif
     DOREPLIFETIME(ABRCharacter, ForwardValue);
     DOREPLIFETIME(ABRCharacter, RightValue);
     DOREPLIFETIME(ABRCharacter, LookUpValue);
+    DOREPLIFETIME(ABRCharacter, CurHealth);
     DOREPLIFETIME(ABRCharacter, bAim);
     DOREPLIFETIME(ABRCharacter, bCanAim);
     DOREPLIFETIME(ABRCharacter, bDead);
     DOREPLIFETIME(ABRCharacter, bDamaged);
     DOREPLIFETIME(ABRCharacter, bEquipWeapon);
-    DOREPLIFETIME(ABRCharacter, CurHealth);
     DOREPLIFETIME(ABRCharacter, bDescent);
     DOREPLIFETIME(ABRCharacter, bGlid);
 }

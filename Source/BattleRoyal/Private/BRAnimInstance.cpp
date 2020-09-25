@@ -68,3 +68,13 @@ void UBRAnimInstance::AnimNotify_ResetDamaged()
 {
     BRCharacter->ResetDamaged();
 }
+
+void UBRAnimInstance::AnimNotify_OnCompleteReload()
+{
+    BRCharacter->Reload();
+}
+
+void UBRAnimInstance::AnimNotify_PlayReloadSound()
+{
+    BRCharacter->PlayReloadSound();
+}

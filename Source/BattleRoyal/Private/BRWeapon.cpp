@@ -57,6 +57,7 @@ void ABRWeapon::LoadWeapon()
         SkeletalMesh->SetSkeletalMesh(BRWeaponDataTableRow->GetSkeletalMesh());
         MuzzleParticle = BRWeaponDataTableRow->GetMuzzleParticle();
         FireSound = BRWeaponDataTableRow->GetFireSound();
+        ReloadSound = BRWeaponDataTableRow->GetReloadSound();
         AttackPower = BRWeaponDataTableRow->GetAttackPower();
         AttackRange = BRWeaponDataTableRow->GetAttackRange();
         BulletQuantity = BRWeaponDataTableRow->GetBulletQuantity();
@@ -67,6 +68,7 @@ void ABRWeapon::LoadWeapon()
         SkeletalMesh->SetSkeletalMesh(nullptr);
         MuzzleParticle = nullptr;
         FireSound = nullptr;
+        ReloadSound = nullptr;
         AttackPower = 0.0f;
         AttackRange = 0.0f;
         BulletQuantity = 0.0f;

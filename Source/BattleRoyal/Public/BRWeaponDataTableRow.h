@@ -16,6 +16,7 @@ public:
     FORCEINLINE USkeletalMesh* GetSkeletalMesh() const noexcept { return SkeletalMesh; }
     FORCEINLINE UParticleSystem* GetMuzzleParticle() const  noexcept { return MuzzleParticle; }
     FORCEINLINE USoundCue* GetFireSound() const noexcept { return FireSound; }
+    FORCEINLINE USoundCue* GetReloadSound() const noexcept { return ReloadSound; }
     FORCEINLINE float GetAttackPower() const noexcept { return AttackPower; }
     FORCEINLINE float GetAttackRange() const noexcept { return AttackRange; }
     FORCEINLINE float GetBulletQuantity() const noexcept { return BulletQuantity; }
@@ -35,6 +36,9 @@ private:
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     class USoundCue* FireSound;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    class USoundCue* ReloadSound;
     
     UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
     float AttackPower;

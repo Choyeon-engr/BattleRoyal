@@ -25,6 +25,12 @@ private:
     UFUNCTION()
     void AnimNotify_ResetDamaged();
     
+    UFUNCTION()
+    void AnimNotify_OnCompleteReload();
+    
+    UFUNCTION()
+    void AnimNotify_PlayReloadSound();
+    
 private:
     UPROPERTY(Transient)
     class ABRCharacter* BRCharacter;

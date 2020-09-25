@@ -14,6 +14,8 @@ public:
     
     void Fire();
     void Dead();
+    void Reload();
+    void PlayReloadSound();
     void MagneticDamage(float DamageAmount);
     FORCEINLINE void ResetDamaged() { ServerResetDamaged(); }
     
@@ -170,6 +172,9 @@ private:
     UPROPERTY()
     class USoundCue* FireSound;
     
+    UPROPERTY()
+    class USoundCue* ReloadSound;
+    
     UPROPERTY(EditAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = true))
     class UAudioComponent* WindSound;
     
@@ -190,6 +195,9 @@ private:
     
     UPROPERTY(Replicated)
     float CurHealth;
+    
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, meta = (AllowPrivateAccess = true))
+    int32 BulletQuantity;
     
     UPROPERTY(Replicated)
     bool bAim;
@@ -219,6 +227,5 @@ private:
     float PreLookUpValue;
     
     float DeadTimer;
-    
     FTimerHandle DeadTimerHandle = { };
 };
