@@ -27,6 +27,9 @@ public:
     UFUNCTION(BlueprintCallable)
     FORCEINLINE float GetCurHealth() const noexcept { return CurHealth; }
     
+    UFUNCTION(BlueprintCallable)
+    int32 GetMaxBulletQuantity() const noexcept;
+    
     FORCEINLINE bool IsAim() const noexcept { return bAim; }
     FORCEINLINE bool IsDead() const noexcept { return bDead; }
     FORCEINLINE bool IsDamaged() const noexcept { return bDamaged; }

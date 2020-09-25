@@ -125,6 +125,11 @@ void ABRCharacter::MagneticDamage(float DamageAmount)
     }
 }
 
+int32 ABRCharacter::GetMaxBulletQuantity() const noexcept
+{
+    return (bEquipWeapon ? BRWeapon->GetBulletQuantity() : 5);
+}
+
 void ABRCharacter::ServerJog_Implementation()
 {
     bGlid = false;
