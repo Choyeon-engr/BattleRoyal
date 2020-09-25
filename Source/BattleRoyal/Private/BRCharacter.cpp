@@ -378,10 +378,23 @@ void ABRCharacter::Jump()
 
 void ABRCharacter::EquipWeapon()
 {
-    if (bEquipWeapon)
-        ServerEquipWeapon(false);
-    else
-        ServerEquipWeapon(true);
+    if (BRWeapon)
+    {
+        bool IsEquipWeapon;
+        
+        if (bEquipWeapon)
+        {
+            IsEquipWeapon = false;
+            ServerEquipWeapon(false);
+        }
+        else
+        {
+            IsEquipWeapon = true;
+            ServerEquipWeapon(true);
+        }
+        
+        BulletQuantity = (IsEquipWeapon ? BRWeapon->GetBulletQuantity() : 5);
+    }
 }
 
 void ABRCharacter::Interaction()
