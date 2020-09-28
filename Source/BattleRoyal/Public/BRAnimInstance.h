@@ -13,7 +13,7 @@ public:
     UBRAnimInstance() : bPreFalling(false) { }
     
 protected:
-    virtual void NativeUpdateAnimation(float DeltaSeconds) override;
+    void NativeUpdateAnimation(float DeltaSeconds) override;
     
 private:
     UFUNCTION()
