@@ -10,7 +10,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Net/UnrealNetwork.h"
 
-ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), BulletQuantity(5), bAim(false), bCanAim(true), bDead(false), bDamaged(false), bEquipWeapon(false), bDescent(false), bGlid(false), bJump(false), DeadTimer(5.0f)
+ABRCharacter::ABRCharacter() : BRWeapon(nullptr), CurHealth(100.0f), BulletQuantity(5), bAim(false), bCanAim(true), bDead(false), bDamaged(false), bEquipWeapon(false), bDescent(false), bGlid(false), bJump(false), DefaultBulletQuantity(5), DeadTimer(5.0f)
 {
     PrimaryActorTick.bCanEverTick = true;
     
@@ -66,7 +66,12 @@ void ABRCharacter::Fire()
         bool bResult = GetWorld()->LineTraceSingleByChannel(HitResult, SpringArm->GetComponentLocation(), SpringArm->GetComponentLocation() + UKismetMathLibrary::GetForwardVector(GetControlRotation()) * (bEquipWeapon ? BRWeapon->GetAttackRange() : 800.0f), ECollisionChannel::ECC_GameTraceChannel1, Params);
         auto Target = Cast<ABRCharacter>(HitResult.Actor);
         
-        --BulletQuantity;
+        if (bEquipWeapon)
+            --WeaponBulletQuantity;
+        else
+            --DefaultBulletQuantity;
+        
+        BulletQuantity = (bEquipWeapon ? WeaponBulletQuantity : DefaultBulletQuantity);
         
         GetWorld()->GetFirstPlayerController()->PlayerCameraManager->PlayCameraShake(CameraShake, 1.0f);
         
@@ -102,7 +107,15 @@ void ABRCharacter::Dead()
 
 void ABRCharacter::Reload()
 {
-    BulletQuantity = (bEquipWeapon ? BRWeapon->GetBulletQuantity() : 5);
+    if (!HasAuthority() && GetController() == UGameplayStatics::GetPlayerController(GetWorld(), 0))
+    {
+        if (bEquipWeapon)
+            WeaponBulletQuantity = BRWeapon->GetBulletQuantity();
+        else
+            DefaultBulletQuantity = 5;
+        
+        BulletQuantity = (bEquipWeapon ? WeaponBulletQuantity : DefaultBulletQuantity);
+    }
 }
 
 void ABRCharacter::PlayReloadSound()
@@ -398,7 +411,7 @@ void ABRCharacter::EquipWeapon()
             ServerEquipWeapon(true);
         }
         
-        BulletQuantity = (IsEquipWeapon ? BRWeapon->GetBulletQuantity() : 5);
+        BulletQuantity = (IsEquipWeapon ? WeaponBulletQuantity : DefaultBulletQuantity);
     }
 }
 
@@ -408,7 +421,14 @@ void ABRCharacter::Interaction()
         ServerGlid();
     
     if (FindWeapon())
+    {
         ServerInteraction(FindWeapon());
+        
+        WeaponBulletQuantity = FindWeapon()->GetBulletQuantity();
+        
+        if (bEquipWeapon)
+            BulletQuantity = WeaponBulletQuantity;
+    }
 }
 
 void ABRCharacter::ServerSetSkin_Implementation(USkeletalMesh* SkeletalMesh)

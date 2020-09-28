@@ -225,6 +225,9 @@ private:
     
     bool bJump;
     
+    int32 DefaultBulletQuantity;
+    int32 WeaponBulletQuantity;
+    
     float PreForwardValue;
     float PreRightValue;
     float PreLookUpValue;
